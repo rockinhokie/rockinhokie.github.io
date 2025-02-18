@@ -32,7 +32,7 @@
     }
 
     .container {
-      max-width: 100%;
+      max-width: 1600px;
       margin: 0 auto;
       background-color: white;
       padding: 20px;
@@ -168,7 +168,7 @@
 
     .column-headers {
       display: grid;
-      grid-template-columns: 30px 80px 200px 80px repeat(12, minmax(65px, 1fr));
+      grid-template-columns: 30px 80px 200px 80px repeat(13, minmax(65px, 1fr));
       gap: 5px;
       margin-bottom: 10px;
       font-weight: 500;
@@ -199,7 +199,7 @@
 
     .allocation-line {
       display: grid;
-      grid-template-columns: 30px 80px 200px 80px repeat(12, minmax(65px, 1fr));
+      grid-template-columns: 30px 80px 200px 80px repeat(13, minmax(65px, 1fr));
       gap: 5px;
       margin-bottom: 1px;
       justify-items: center;
@@ -239,6 +239,16 @@
 
     .allocation-line input.monthly-input {
       text-align: right;
+    }
+
+    .total-value {
+      font-size: 12px;
+      font-weight: bold;
+      color: var(--text-color);
+      text-align: right;
+      padding: 5px;
+      border-radius: 4px;
+      background-color: var(--secondary-color);
     }
 
     .allocation-actions {
@@ -320,9 +330,9 @@
         <label for="department-filter">Home Department:</label>
         <select id="department-filter">
           <option value="IT" selected>IT</option>
-          <option value="Finance" selected>Finance</option>
-          <option value="HR" selected>HR</option>
-          <option value="Marketing" selected>Marketing</option>
+          <option value="Finance">Finance</option>
+          <option value="HR">HR</option>
+          <option value="Marketing">Marketing</option>
         </select>
 
         <label for="iteration-filter">Budget Iteration:</label>
@@ -611,7 +621,7 @@
         // Create the headers separately and append them one by one
         const columnTitles = [
           'Allocation %', 'Department', '% Core', 'Jul', 'Aug', 'Sep', 'Oct',
-          'Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'
+          'Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Total' // Added 'Total'
         ];
 
         columnTitles.forEach(title => {
@@ -646,7 +656,7 @@
       }
 
       function createAllocationLine(employeeId, allocation) {
-        const line = document.createElement('div');0
+        const line = document.createElement('div'); 0
         line.className = 'allocation-line';
         line.dataset.allocationId = allocation.id;
 
@@ -709,15 +719,15 @@
           if (value >= 0 && value <= 100) {
             updateAllocationField(employeeId, allocation.id, 'percentCore', value);
 
-                // Format the input
-                e.target.value = value + '%';
+            // Format the input
+            e.target.value = value + '%';
 
-                // Update totals to reflect the new percentCore value
-                updateTotals();
+            // Update totals to reflect the new percentCore value
+            updateTotals();
 
-                // Optional: validate the employee
-                //validateEmployee(employeeId);
-              
+            // Optional: validate the employee
+            //validateEmployee(employeeId);
+
           } else {
             alert('Please enter a value between 0 and 100.');
             // Reset to the previous valid value
@@ -765,6 +775,14 @@
           });
           line.appendChild(monthInput);
         });
+
+        // Calculate and display the total of monthly values
+        const totalValue = allocation.monthlyValues.reduce((sum, val) => sum + val, 0);
+        const totalCell = document.createElement('div');
+        totalCell.className = 'monthly-input total-value';
+        totalCell.textContent = formatCurrency(totalValue);
+        totalCell.id = `linetotal-${allocation.id}`; // Unique ID using allocation.id
+        line.appendChild(totalCell);
 
         return line;
       }
@@ -911,13 +929,13 @@
           errorElement.textContent += 'Allocations must not be greater than 100%.';
           employeeBox.classList.add('error');
         }
-        // Allow for small rounding differences (e.g., $11 difference in a $100,000 salary)
-        //const roundingTolerance = Math.max(12, Math.round(employee.salary * 0.0001)); // 0.01% tolerance or at least $12
+        //Allow for small rounding differences (e.g., $11 difference in a $100,000 salary)
+        const roundingTolerance = Math.max(12, Math.round(employee.salary * 0.0001)); // 0.01% tolerance or at least $12
 
-        //if (Math.abs(totalAllocatedValue - employee.salary) > roundingTolerance) {
-        //  errorElement.textContent += '  Monthly values must total the salary amount.'; employeeBox.classList.add('error');
-        //}
-        if (totalPercent > 100) {
+        if (totalAllocatedValue - employee.salary > roundingTolerance) {
+          errorElement.textContent += '  The total of all Monthly values must not be greater than the salary amount.'; employeeBox.classList.add('error');
+        }
+        if (totalPercent > 100 || (Math.abs(totalAllocatedValue - employee.salary) > roundingTolerance)) {
           return false;
         }
 
@@ -973,6 +991,13 @@
             if (allocation.department === currentDepartment) {
               totalAllocated += (employee.salary * (allocation.percent / 100));
             }
+
+            // Update the total for each allocation line
+            const totalValue = allocation.monthlyValues.reduce((sum, val) => sum + val, 0);
+            const totalCell = document.getElementById(`linetotal-${allocation.id}`);
+            if (totalCell) {
+              totalCell.textContent = formatCurrency(totalValue);
+            }
           });
         });
 
@@ -989,7 +1014,6 @@
         document.getElementById('total-salaries').textContent = formatCurrency(totalSalary);
         document.getElementById('total-allocated').textContent = formatCurrency(totalAllocated);
         document.getElementById('total-allocated-core').textContent = formatCurrency(totalCore);
-
       }
 
       function saveData() {
