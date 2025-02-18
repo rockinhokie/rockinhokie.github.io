@@ -108,13 +108,20 @@
     }
 
     .employee-box {
-      border: 1px solid var(--light-gray);
       border-radius: 8px;
       margin-bottom: 10px;
       padding: 10px;
-      background-color: white;
+      background-color: f5f5f5;
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
       transition: border-color 0.3s;
+    }
+
+    .employee-box:nth-child(odd) {
+      border: 1px solid var(--light-gray);
+    }
+
+    .employee-box:nth-child(even) {
+      border: 1px solid #bdbdbd;
     }
 
     .employee-box.error {
@@ -174,6 +181,22 @@
       text-align: center;
     }
 
+    .column-headers button.add-line {
+      width: 24px;
+      height: 24px;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      background-color: var(--primary-color);
+      color: white;
+    }
+
+    .column-headers button.add-line:hover {
+      background-color: #303f9f;
+    }
+
     .allocation-line {
       display: grid;
       grid-template-columns: 30px 80px 200px 80px repeat(12, minmax(65px, 1fr));
@@ -187,6 +210,7 @@
       width: 100%;
       /* Fixed width to prevent wrapping */
     }
+
 
     .allocation-line button.delete-line {
       width: 24px;
@@ -227,6 +251,10 @@
       color: var(--danger-color);
       font-size: 13px;
       margin-top: 10px;
+    }
+
+    .newemployee-bottom {
+      text-align: right;
     }
 
     .grand-total {
@@ -280,30 +308,6 @@
       font-size: 14px;
       margin-right: 20px;
     }
-
-    /* Media Queries */
-
-    @media (max-width: 1200px) {
-
-      .allocation-line {
-
-        grid-template-columns: 30px 80px 150px 80px repeat(12, minmax(50px, 1fr));
-        /* Adjust for smaller screens */
-
-      }
-
-    }
-
-    @media (max-width: 768px) {
-
-      .allocation-line {
-
-        grid-template-columns: 1fr 1fr 1fr 1fr;
-        /* Stack items vertically on very small screens */
-
-      }
-
-    }
   </style>
 </head>
 
@@ -336,8 +340,11 @@
       <!-- Employees will be loaded here dynamically -->
       <div class="loading">Loading employee data...</div>
     </div>
-
+    <div class="newemployee-bottom">
+      <button id="add-employee-btn2" type="button">+ Add New Employee</button>
+    </div>
     <div class="grand-total">
+
       <div class="grand-total-row">
         <span>Total Salaries:</span>
         <span id="total-salaries">$0.00</span>
@@ -461,8 +468,17 @@
           validateAllEmployees();
         });
 
-        // Add new employee button
-        document.getElementById('add-employee-btn').addEventListener('click', addNewEmployee);
+        // Add event listener for both add-employee-btn (top of page) and add-employee-btn2 (bottom of page)
+        document.querySelectorAll('#add-employee-btn, #add-employee-btn2').forEach(button => {
+          button.addEventListener('click', () => {
+            addNewEmployee();
+            window.scrollTo({
+              top: document.body.scrollHeight, // Scroll to the bottom
+              behavior: "smooth"               // Smooth scroll
+            });
+          });
+        });
+
 
         // Save button
         document.getElementById('save-btn').addEventListener('click', saveData);
@@ -581,24 +597,29 @@
         // Column headers
         const headers = document.createElement('div');
         headers.className = 'column-headers';
-        headers.innerHTML = `
-          <div></div>
-          <div>Allocation %</div>
-          <div>Department</div>
-          <div>% Core</div>
-          <div>Jul</div>
-          <div>Aug</div>
-          <div>Sep</div>
-          <div>Oct</div>
-          <div>Nov</div>
-          <div>Dec</div>
-          <div>Jan</div>
-          <div>Feb</div>
-          <div>Mar</div>
-          <div>Apr</div>
-          <div>May</div>
-          <div>Jun</div>
-        `;
+
+        // Create the button
+        const addLineBtn = document.createElement('button');
+        addLineBtn.textContent = '+';
+        addLineBtn.classList.add('add-line');
+        // Add event listener before appending
+        addLineBtn.addEventListener('click', () => addAllocationLine(employee.id));
+
+        // Append button first
+        headers.appendChild(addLineBtn);
+
+        // Create the headers separately and append them one by one
+        const columnTitles = [
+          'Allocation %', 'Department', '% Core', 'Jul', 'Aug', 'Sep', 'Oct',
+          'Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'
+        ];
+
+        columnTitles.forEach(title => {
+          const div = document.createElement('div');
+          div.textContent = title;
+          headers.appendChild(div);
+        });
+
         box.appendChild(headers);
 
         // Allocation lines
@@ -607,13 +628,13 @@
         });
 
         // Add allocation button
-        const actions = document.createElement('div');
-        actions.className = 'allocation-actions';
-        const addLineBtn = document.createElement('button');
-        addLineBtn.textContent = '+ Add Allocation Line';
-        addLineBtn.addEventListener('click', () => addAllocationLine(employee.id));
-        actions.appendChild(addLineBtn);
-        box.appendChild(actions);
+        //const actions = document.createElement('div');
+        //actions.className = 'allocation-actions';
+        //const addLineBtn = document.createElement('button');
+        //addLineBtn.textContent = '+ Add Allocation Line';
+        //addLineBtn.addEventListener('click', () => addAllocationLine(employee.id));
+        //actions.appendChild(addLineBtn);
+        //box.appendChild(actions);
 
         // Error message container (initially empty)
         const errorMsg = document.createElement('div');
@@ -625,7 +646,7 @@
       }
 
       function createAllocationLine(employeeId, allocation) {
-        const line = document.createElement('div');
+        const line = document.createElement('div');0
         line.className = 'allocation-line';
         line.dataset.allocationId = allocation.id;
 
@@ -686,13 +707,21 @@
 
           // Validate if the value is between 0 and 100
           if (value >= 0 && value <= 100) {
-            // If valid, update the value and proceed with the logic
-            previousValue = value; // Update the previous value with the valid one
-            e.target.value = value + '%';
+            updateAllocationField(employeeId, allocation.id, 'percentCore', value);
+
+                // Format the input
+                e.target.value = value + '%';
+
+                // Update totals to reflect the new percentCore value
+                updateTotals();
+
+                // Optional: validate the employee
+                //validateEmployee(employeeId);
+              
           } else {
             alert('Please enter a value between 0 and 100.');
             // Reset to the previous valid value
-            e.target.value = previousValue + '%';
+            e.target.value = allocation.percentCore + '%';
           }
         });
         line.appendChild(percentCoreInput);
@@ -713,7 +742,25 @@
               alert("Please enter a valid whole number.");
               e.target.value = formatCurrency(parseInt(value)); // Reset to the previous valid value
             } else {
-              e.target.value = formatCurrency(parseInt(rawValue)); // Format the valid input
+              // Parse and format the input value
+              let newValue = parseInt(rawValue);
+              e.target.value = formatCurrency(newValue);
+
+              // Find the employee and allocation to update
+              const employee = findEmployee(employeeId);
+              if (employee) {
+                const allocIndex = employee.allocations.findIndex(a => a.id === allocation.id);
+                if (allocIndex !== -1) {
+                  // Update the monthly value in the actual employee data structure
+                  employee.allocations[allocIndex].monthlyValues[index] = newValue;
+
+                  // Run validation for this employee
+                  validateEmployee(employee);
+
+                  // Update totals to reflect the new monthly value
+                  updateTotals();
+                }
+              }
             }
           });
           line.appendChild(monthInput);
@@ -735,6 +782,7 @@
               id: Date.now() + 1, // Another temporary ID
               department: currentDepartment,
               percent: 100,
+              percentCore: 100,
               monthlyValues: Array(12).fill(0)
             }
           ]
@@ -844,14 +892,36 @@
         const totalPercent = employee.allocations.reduce((sum, allocation) =>
           sum + allocation.percent, 0);
 
+        const totalAllocatedValue = employee.allocations.reduce((sum, allocation) => {
+          // Check if allocation.monthlyValues is an array and is defined
+          if (Array.isArray(allocation.monthlyValues)) {
+            const allocationTotal = allocation.monthlyValues.reduce((subSum, value) => subSum + value, 0);
+            return sum + allocationTotal; // Add the allocation total to the main sum
+          } else {
+            // If monthlyValues is not an array or is undefined, skip this allocation
+            return sum;
+          }
+        }, 0);
         const errorElement = document.getElementById(`error-${employee.id}`);
         const employeeBox = document.querySelector(`.employee-box[data-employee-id="${employee.id}"]`);
 
-        if (totalPercent > 100) {
-          errorElement.textContent = 'Error: Total allocation percentage cannot exceed 100%.';
+        errorElement.textContent = '';
+
+        if (totalPercent != 100) {
+          errorElement.textContent += 'Allocations must total to 100%.';
           employeeBox.classList.add('error');
+        }
+        // Allow for small rounding differences (e.g., $11 difference in a $100,000 salary)
+        const roundingTolerance = Math.max(12, Math.round(employee.salary * 0.0001)); // 0.01% tolerance or at least $12
+
+        if (Math.abs(totalAllocatedValue - employee.salary) > roundingTolerance) {
+          errorElement.textContent += '  Monthly values must total the salary amount.'; employeeBox.classList.add('error');
+        }
+        if (totalPercent != 100 || totalAllocatedValue != employee.salary) {
           return false;
-        } else {
+        }
+
+        else {
           errorElement.textContent = '';
           employeeBox.classList.remove('error');
           return true;
@@ -901,7 +971,7 @@
         filteredEmployees.forEach(employee => {
           employee.allocations.forEach(allocation => {
             if (allocation.department === currentDepartment) {
-              totalAllocated += (employee.salary * allocation.percent / 100);
+              totalAllocated += (employee.salary * (allocation.percent / 100));
             }
           });
         });
@@ -911,7 +981,7 @@
         filteredEmployees.forEach(employee => {
           employee.allocations.forEach(allocation => {
             if (allocation.department === currentDepartment) {
-              totalCore += (employee.salary * allocation.percent / 100 * allocation.percentCore / 100);
+              totalCore += (employee.salary * (allocation.percent / 100) * (allocation.percentCore / 100));
             }
           });
         });
@@ -955,10 +1025,19 @@
       }
 
       function generateMonthlyValues(salary, percent) {
-        const baseMonthlyAmount = salary * percent / 100 / 12;
-        return Array(12).fill(0).map((_, index) => {
-          return Math.round(baseMonthlyAmount);
-        });
+        const totalAmount = salary * percent / 100;
+        const baseMonthlyAmount = totalAmount / 12;
+
+        // Generate 12 months of rounded values
+        const roundedValues = Array(11).fill(0).map(() => Math.round(baseMonthlyAmount));
+
+        // Calculate the sum of the first 11 months
+        const sumFirst11 = roundedValues.reduce((sum, val) => sum + val, 0);
+
+        // The last month adjusts to make the total exactly match the expected amount
+        roundedValues.push(totalAmount - sumFirst11);
+
+        return roundedValues;
       }
 
       function formatCurrency(amount) {
