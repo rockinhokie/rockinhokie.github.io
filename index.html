@@ -237,6 +237,23 @@
       width: 100%;
     }
 
+    
+    .grand-total-value div {
+      font-size: 12px;
+      font-weight: bold;
+      text-decoration: underline;
+      color: var(--text-color);
+      background-color: var(--secondary-color);
+      text-align: right;
+      padding: 5px;
+    }
+
+    .grand-total-value div:last-child {
+      font-weight: bold;
+      padding-right: 10px;
+    }
+
+
     .allocation-line input.monthly-input {
       text-align: right;
     }
@@ -250,6 +267,7 @@
       border-radius: 4px;
       background-color: var(--secondary-color);
     }
+
 
     .allocation-actions {
       margin-top: 15px;
@@ -329,10 +347,6 @@
       <div class="filters">
         <label for="department-filter">Home Department:</label>
         <select id="department-filter">
-          <option value="IT" selected>IT</option>
-          <option value="Finance">Finance</option>
-          <option value="HR">HR</option>
-          <option value="Marketing">Marketing</option>
         </select>
 
         <label for="iteration-filter">Budget Iteration:</label>
@@ -425,6 +439,13 @@
           // Extract available iterations from metadata
           availableIterations = budgetData.metadata.availableIterations;
 
+          // Extract departments from budgetData
+          departments = budgetData.departments.sort((a, b) => a.value.localeCompare(b.value));
+          // Set the currentDepartment to the first department value
+          if (departments.length > 0) {
+            currentDepartment = departments[0].value;
+          }
+
           // Populate iteration dropdown
           const iterationDropdown = document.getElementById('iteration-filter');
           iterationDropdown.innerHTML = '';
@@ -437,6 +458,20 @@
             }
             iterationDropdown.appendChild(option);
           });
+
+          // Populate department dropdown
+          const departmentDropdown = document.getElementById('department-filter');
+          departmentDropdown.innerHTML = '';
+          departments.forEach(dept => {
+            const option = document.createElement('option');
+            option.value = dept.value;
+            option.textContent = dept.label;
+            if (dept.value === currentDepartment) {
+              option.selected = true;
+            }
+            departmentDropdown.appendChild(option);
+          });
+
         } catch (error) {
           console.error('Failed to fetch budget data:', error);
           throw error;
@@ -637,6 +672,8 @@
           box.appendChild(createAllocationLine(employee.id, allocation));
         });
 
+        box.appendChild(createGrandTotalRow(employee));
+
         // Add allocation button
         //const actions = document.createElement('div');
         //actions.className = 'allocation-actions';
@@ -693,9 +730,9 @@
         const deptSelect = document.createElement('select');
         departments.forEach(dept => {
           const option = document.createElement('option');
-          option.value = dept;
-          option.textContent = dept;
-          if (dept === allocation.department) {
+          option.value = dept.value;
+          option.textContent = dept.label;
+          if (dept.value === allocation.department) {
             option.selected = true;
           }
           deptSelect.appendChild(option);
@@ -976,45 +1013,80 @@
       }
 
       function updateTotals() {
-        const filteredEmployees = employeeData.filter(employee =>
-          employee.homeDepartment === currentDepartment
-        );
+  const filteredEmployees = employeeData.filter(employee =>
+    employee.homeDepartment === currentDepartment
+  );
 
-        // Calculate total salaries
-        const totalSalary = filteredEmployees.reduce((sum, employee) =>
-          sum + employee.salary, 0);
+  // Calculate total salaries
+  const totalSalary = filteredEmployees.reduce((sum, employee) =>
+    sum + employee.salary, 0);
 
-        // Calculate total allocated to home department
-        let totalAllocated = 0;
-        filteredEmployees.forEach(employee => {
-          employee.allocations.forEach(allocation => {
-            if (allocation.department === currentDepartment) {
-              totalAllocated += (employee.salary * (allocation.percent / 100));
-            }
-
-            // Update the total for each allocation line
-            const totalValue = allocation.monthlyValues.reduce((sum, val) => sum + val, 0);
-            const totalCell = document.getElementById(`linetotal-${allocation.id}`);
-            if (totalCell) {
-              totalCell.textContent = formatCurrency(totalValue);
-            }
-          });
-        });
-
-        // Calculate total allocated to core
-        let totalCore = 0;
-        filteredEmployees.forEach(employee => {
-          employee.allocations.forEach(allocation => {
-            if (allocation.department === currentDepartment) {
-              totalCore += (employee.salary * (allocation.percent / 100) * (allocation.percentCore / 100));
-            }
-          });
-        });
-
-        document.getElementById('total-salaries').textContent = formatCurrency(totalSalary);
-        document.getElementById('total-allocated').textContent = formatCurrency(totalAllocated);
-        document.getElementById('total-allocated-core').textContent = formatCurrency(totalCore);
+  // Calculate total allocated to home department
+  let totalAllocated = 0;
+  filteredEmployees.forEach(employee => {
+    let employeeTotal = 0;
+    employee.allocations.forEach(allocation => {
+      if (allocation.department === currentDepartment) {
+        totalAllocated += (employee.salary * (allocation.percent / 100));
       }
+
+      // Update the total for each allocation line
+      const totalValue = allocation.monthlyValues.reduce((sum, val) => sum + val, 0);
+      const totalCell = document.getElementById(`linetotal-${allocation.id}`);
+      if (totalCell) {
+        totalCell.textContent = formatCurrency(totalValue);
+      }
+
+      // Add to employee's total
+      employeeTotal += totalValue;
+    });
+
+    // Update the grand total for the employee
+    const grandTotalCell = document.getElementById(`grandtotal-${employee.id}`);
+    if (grandTotalCell) {
+      grandTotalCell.textContent = `${formatCurrency(employeeTotal)}`;
+    }
+  });
+
+  // Calculate total allocated to core
+  let totalCore = 0;
+  filteredEmployees.forEach(employee => {
+    employee.allocations.forEach(allocation => {
+      if (allocation.department === currentDepartment) {
+        totalCore += (employee.salary * (allocation.percent / 100) * (allocation.percentCore / 100));
+      }
+    });
+  });
+
+  document.getElementById('total-salaries').textContent = formatCurrency(totalSalary);
+  document.getElementById('total-allocated').textContent = formatCurrency(totalAllocated);
+  document.getElementById('total-allocated-core').textContent = formatCurrency(totalCore);
+}
+
+function createGrandTotalRow(employee) {
+    const grandTotalRow = document.createElement('div');
+    grandTotalRow.className = 'allocation-line grand-total-value';
+
+    // Empty cells to align with the structure of allocation lines
+    for (let i = 0; i < 16; i++) {
+        const emptyCell = document.createElement('div');
+        emptyCell.textContent = ''; // Keeps the structure aligned
+        grandTotalRow.appendChild(emptyCell);
+    }
+
+    // Calculate the grand total of all allocations
+    const grandTotalValue = employee.allocations.reduce((sum, allocation) => {
+        return sum + allocation.monthlyValues.reduce((subSum, val) => subSum + val, 0);
+    }, 0);
+
+    // Grand total cell
+    const grandTotalCell = document.createElement('div');
+    grandTotalCell.textContent = formatCurrency(grandTotalValue);
+    grandTotalCell.id = `grandtotal-${employee.id}`;
+    grandTotalRow.appendChild(grandTotalCell);
+
+    return grandTotalRow;
+}
 
       function saveData() {
         if (hasValidationErrors) {

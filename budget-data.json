@@ -7,6 +7,13 @@
       {"id": "FY25-Q2", "name": "FY25-Q2 (Q2 Update)"}
     ]
   },
+  "departments": [
+    {"value": "12226", "label": "12226 - IT - BUSINESS APPS"},
+    {"value": "13333", "label": "13333 - INTERNATIONAL FINANCE"},
+    {"value": "12250", "label": "12250 - FINANCE SYSTEMS"},
+    {"value": "12234", "label": "12234 - FINANCIAL PLANNING AND ANALYSIS"},
+    {"value": "12235", "label": "12235 - GLOBAL TREASURY & RISK MGT"}
+  ],
   "iterations": [
     {
       "iterationId": "FY25",
@@ -18,19 +25,19 @@
           "name": "John Smith",
           "jobTitle": "Senior Developer",
           "salary": 120000,
-          "homeDepartment": "IT",
+          "homeDepartment": "12226",
           "isExisting": true,
           "allocations": [
             {
               "id": 10001,
-              "department": "IT",
+              "department": "12226",
               "percent": 75,
               "percentCore": 100,
               "monthlyValues": [7350, 7425, 7500, 7575, 7650, 7500, 7425, 7500, 7575, 7650, 7500, 7350]
             },
             {
               "id": 10002,
-              "department": "Marketing",
+              "department": "12250",
               "percent": 25,
               "percentCore": 100,
               "monthlyValues": [2450, 2475, 2500, 2525, 2550, 2500, 2475, 2500, 2525, 2550, 2500, 2450]
@@ -42,12 +49,12 @@
           "name": "Jane Doe",
           "jobTitle": "Project Manager",
           "salary": 110000,
-          "homeDepartment": "IT",
+          "homeDepartment": "12226",
           "isExisting": true,
           "allocations": [
             {
               "id": 10003,
-              "department": "IT",
+              "department": "12226",
               "percent": 100,
               "percentCore": 100,
               "monthlyValues": [9050, 9125, 9200, 9275, 9350, 9200, 9125, 9200, 9275, 9350, 9200, 9150]
@@ -59,19 +66,19 @@
           "name": "Robert Johnson",
           "jobTitle": "System Administrator",
           "salary": 90000,
-          "homeDepartment": "IT",
+          "homeDepartment": "12226",
           "isExisting": true,
           "allocations": [
             {
               "id": 10004,
-              "department": "IT",
+              "department": "12226",
               "percent": 60,
               "percentCore": 100,
               "monthlyValues": [4425, 4500, 4575, 4500, 4425, 4500, 4575, 4650, 4575, 4500, 4425, 4350]
             },
             {
               "id": 10005,
-              "department": "Operations",
+              "department": "13333",
               "percent": 40,
               "percentCore": 100,
               "monthlyValues": [2950, 3000, 3050, 3000, 2950, 3000, 3050, 3100, 3050, 3000, 2950, 2900]
@@ -83,19 +90,19 @@
           "name": "Mary Williams",
           "jobTitle": "UI/UX Designer",
           "salary": 95000,
-          "homeDepartment": "IT",
+          "homeDepartment": "12226",
           "isExisting": true,
           "allocations": [
             {
               "id": 10006,
-              "department": "IT",
+              "department": "12226",
               "percent": 50,
               "percentCore": 100,
               "monthlyValues": [3900, 3950, 4000, 4050, 3975, 3925, 3900, 3950, 4000, 4050, 3975, 3925]
             },
             {
               "id": 10007,
-              "department": "Marketing",
+              "department": "12250",
               "percent": 50,
               "percentCore": 100,
               "monthlyValues": [3900, 3950, 4000, 4050, 3975, 3925, 3900, 3950, 4000, 4050, 3975, 3925]
@@ -107,19 +114,19 @@
           "name": "David Brown",
           "jobTitle": "Data Analyst",
           "salary": 85000,
-          "homeDepartment": "IT",
+          "homeDepartment": "12226",
           "isExisting": true,
           "allocations": [
             {
               "id": 10008,
-              "department": "IT",
+              "department": "12226",
               "percent": 80,
               "percentCore": 100,
               "monthlyValues": [5600, 5650, 5700, 5750, 5675, 5625, 5600, 5650, 5700, 5750, 5675, 5625]
             },
             {
               "id": 10009,
-              "department": "Finance",
+              "department": "12235",
               "percent": 20,
               "percentCore": 100,
               "monthlyValues": [1400, 1410, 1420, 1430, 1420, 1410, 1400, 1410, 1420, 1430, 1420, 1410]
@@ -131,12 +138,12 @@
           "name": "Sarah Parker",
           "jobTitle": "Finance Manager",
           "salary": 130000,
-          "homeDepartment": "Finance",
+          "homeDepartment": "12235",
           "isExisting": true,
           "allocations": [
             {
               "id": 20001,
-              "department": "Finance",
+              "department": "12235",
               "percent": 100,
               "percentCore": 100,
               "monthlyValues": [10750, 10800, 10850, 10900, 10850, 10800, 10750, 10800, 10850, 10900, 10850, 10800]
@@ -148,12 +155,12 @@
           "name": "Michael Garcia",
           "jobTitle": "Marketing Director",
           "salary": 140000,
-          "homeDepartment": "Marketing",
+          "homeDepartment": "12250",
           "isExisting": true,
           "allocations": [
             {
               "id": 30001,
-              "department": "Marketing",
+              "department": "12250",
               "percent": 100,
               "percentCore": 100,
               "monthlyValues": [11550, 11600, 11650, 11700, 11650, 11600, 11550, 11600, 11650, 11700, 11650, 11600]
@@ -165,12 +172,12 @@
           "name": "Linda Wilson",
           "jobTitle": "Operations Manager",
           "salary": 125000,
-          "homeDepartment": "Operations",
+          "homeDepartment": "13333",
           "isExisting": true,
           "allocations": [
             {
               "id": 40001,
-              "department": "Operations",
+              "department": "13333",
               "percent": 100,
               "percentCore": 100,
               "monthlyValues": [10350, 10400, 10450, 10500, 10450, 10400, 10350, 10400, 10450, 10500, 10450, 10400]
@@ -182,12 +189,12 @@
           "name": "James Taylor",
           "jobTitle": "HR Director",
           "salary": 135000,
-          "homeDepartment": "HR",
+          "homeDepartment": "12234",
           "isExisting": true,
           "allocations": [
             {
               "id": 50001,
-              "department": "HR",
+              "department": "12234",
               "percent": 100,
               "percentCore": 100,
               "monthlyValues": [11150, 11200, 11250, 11300, 11250, 11200, 11150, 11200, 11250, 11300, 11250, 11200]
@@ -206,19 +213,19 @@
           "name": "John Smith",
           "jobTitle": "Senior Developer",
           "salary": 123000,  
-          "homeDepartment": "IT",
+          "homeDepartment": "12226",
           "isExisting": true,
           "allocations": [
             {
               "id": 10001,
-              "department": "IT",
+              "department": "12226",
               "percent": 80,  
               "percentCore": 100,
               "monthlyValues": [8200, 8250, 8300, 8350, 8400, 8200, 8100, 8200, 8300, 8400, 8200, 8100]
             },
             {
               "id": 10002,
-              "department": "Marketing",
+              "department": "12250",
               "percent": 20,  
               "percentCore": 100,
               "monthlyValues": [2050, 2060, 2070, 2080, 2100, 2050, 2025, 2050, 2075, 2100, 2050, 2025]
@@ -230,12 +237,12 @@
           "name": "Jane Doe",
           "jobTitle": "Project Manager",
           "salary": 110000,
-          "homeDepartment": "IT",
+          "homeDepartment": "12226",
           "isExisting": true,
           "allocations": [
             {
               "id": 10003,
-              "department": "IT",
+              "department": "12226",
               "percent": 100,
               "percentCore": 100,
               "monthlyValues": [9050, 9125, 9200, 9275, 9350, 9200, 9125, 9200, 9275, 9350, 9200, 9150]
@@ -247,19 +254,19 @@
           "name": "Robert Johnson",
           "jobTitle": "System Administrator",
           "salary": 92000,  
-          "homeDepartment": "IT",
+          "homeDepartment": "12226",
           "isExisting": true,
           "allocations": [
             {
               "id": 10004,
-              "department": "IT",
+              "department": "12226",
               "percent": 60,
               "percentCore": 100,
               "monthlyValues": [4525, 4600, 4675, 4600, 4525, 4600, 4675, 4750, 4675, 4600, 4525, 4450]
             },
             {
               "id": 10005,
-              "department": "Operations",
+              "department": "13333",
               "percent": 40,
               "percentCore": 100,
               "monthlyValues": [3017, 3067, 3117, 3067, 3017, 3067, 3117, 3167, 3117, 3067, 3017, 2967]
@@ -271,12 +278,12 @@
           "name": "Jennifer Lewis",
           "jobTitle": "Frontend Developer",
           "salary": 98000,
-          "homeDepartment": "IT",
+          "homeDepartment": "12226",
           "isExisting": true,
           "allocations": [
             {
               "id": 10010,
-              "department": "IT",
+              "department": "12226",
               "percent": 100,
               "percentCore": 100,
               "monthlyValues": [8150, 8200, 8250, 8300, 8200, 8100, 8150, 8200, 8250, 8300, 8200, 8100]
@@ -294,26 +301,26 @@
           "name": "John Smith",
           "jobTitle": "Senior Developer",
           "salary": 123000,
-          "homeDepartment": "IT",
+          "homeDepartment": "12226",
           "isExisting": true,
           "allocations": [
             {
               "id": 10001,
-              "department": "IT",
+              "department": "12226",
               "percent": 70,  
               "percentCore": 100,
               "monthlyValues": [7175, 7225, 7275, 7325, 7375, 7175, 7075, 7175, 7275, 7375, 7175, 7075]
             },
             {
               "id": 10002,
-              "department": "Marketing",
+              "department": "12250",
               "percent": 20,
               "percentCore": 100,
               "monthlyValues": [2050, 2060, 2070, 2080, 2100, 2050, 2025, 2050, 2075, 2100, 2050, 2025]
             },
             {
               "id": 10012,
-              "department": "Finance",
+              "department": "12235",
               "percent": 10,  
               "percentCore": 100,
               "monthlyValues": [1025, 1030, 1035, 1040, 1050, 1025, 1010, 1025, 1035, 1050, 1025, 1010]
@@ -325,12 +332,12 @@
           "name": "Jane Doe",
           "jobTitle": "Senior Project Manager",  
           "salary": 115000,  
-          "homeDepartment": "IT",
+          "homeDepartment": "12226",
           "isExisting": true,
           "allocations": [
             {
               "id": 10003,
-              "department": "IT",
+              "department": "12226",
               "percent": 100,
               "percentCore": 100,
               "monthlyValues": [9550, 9625, 9700, 9775, 9850, 9700, 9625, 9700, 9775, 9850, 9700, 9650]
