@@ -912,12 +912,12 @@
           employeeBox.classList.add('error');
         }
         // Allow for small rounding differences (e.g., $11 difference in a $100,000 salary)
-        const roundingTolerance = Math.max(12, Math.round(employee.salary * 0.0001)); // 0.01% tolerance or at least $12
+        //const roundingTolerance = Math.max(12, Math.round(employee.salary * 0.0001)); // 0.01% tolerance or at least $12
 
-        if (Math.abs(totalAllocatedValue - employee.salary) > roundingTolerance) {
-          errorElement.textContent += '  Monthly values must total the salary amount.'; employeeBox.classList.add('error');
-        }
-        if (totalPercent > 100 || totalAllocatedValue != employee.salary) {
+        //if (Math.abs(totalAllocatedValue - employee.salary) > roundingTolerance) {
+        //  errorElement.textContent += '  Monthly values must total the salary amount.'; employeeBox.classList.add('error');
+        //}
+        if (totalPercent > 100) {
           return false;
         }
 
