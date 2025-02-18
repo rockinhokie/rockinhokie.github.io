@@ -972,8 +972,9 @@
         if (totalAllocatedValue - employee.salary > roundingTolerance) {
           errorElement.textContent += '  The total of all Monthly values must not be greater than the salary amount.'; employeeBox.classList.add('error');
         }
-        if (totalPercent > 100 || (Math.abs(totalAllocatedValue - employee.salary) > roundingTolerance)) {
+        if (totalPercent > 100 || (totalAllocatedValue - employee.salary > roundingTolerance)) {
           return false;
+          console.log()
         }
 
         else {
