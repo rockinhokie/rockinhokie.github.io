@@ -107,6 +107,53 @@
       background-color: #45a049;
     }
 
+    .tab-container {
+      margin: 20px 0;
+      border-bottom: 2px solid var(--light-gray);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    #add-employee-btn {
+      display: none;
+      /* Hidden by default */
+    }
+
+    .tab-container.staff-active #add-employee-btn {
+      display: block;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 2px;
+    }
+
+    .tab {
+      padding: 12px 24px;
+      font-size: 16px;
+      font-weight: bold;
+      background-color: #999;
+      border: none;
+      border-radius: 4px 4px 0 0;
+      cursor: pointer;
+      min-width: 200px;
+    }
+
+    .tab.active {
+      background-color: var(--primary-color);
+      color: white;
+    }
+
+    .tab-content {
+      display: none;
+      padding: 20px 0;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
     .employee-box {
       border-radius: 8px;
       margin-bottom: 10px;
@@ -237,7 +284,7 @@
       width: 100%;
     }
 
-    
+
     .grand-total-value div {
       font-size: 12px;
       font-weight: bold;
@@ -357,32 +404,51 @@
         </select>
       </div>
 
+
+    </div>
+
+    <div class="tab-container">
+      <div class="tabs">
+        <button class="tab active" data-tab="staff">Staff Expenses</button>
+        <button class="tab" data-tab="flexible">Flexible Expenses</button>
+      </div>
       <button id="add-employee-btn" type="button">+ Add New Employee</button>
     </div>
+    <div id="staff-container" class="tab-content active">
 
-    <div id="employee-containers">
-      <!-- Employees will be loaded here dynamically -->
-      <div class="loading">Loading employee data...</div>
-    </div>
-    <div class="newemployee-bottom">
-      <button id="add-employee-btn2" type="button">+ Add New Employee</button>
-    </div>
-    <div class="grand-total">
+      <!-- Existing employee containers move here -->
+      <div id="employee-containers">
+        <!-- Employees will be loaded here dynamically -->
+        <div class="loading">Loading employee data...</div>
+      </div>
+      <div class="newemployee-bottom">
+        <button id="add-employee-btn2" type="button">+ Add New Employee</button>
+      </div>
+      <div class="grand-total">
 
-      <div class="grand-total-row">
-        <span>Total Salaries:</span>
-        <span id="total-salaries">$0.00</span>
+        <div class="grand-total-row">
+          <span>Total Salaries:</span>
+          <span id="total-salaries">$0.00</span>
+        </div>
+        <div class="grand-total-row">
+          <span>Total Allocated to Home Department:</span>
+          <span id="total-allocated">$0.00</span>
+        </div>
+        <div class="grand-total-row">
+          <span>Total Allocated to Home Department / Core Fund:</span>
+          <span id="total-allocated-core">$0.00</span>
+        </div>
       </div>
-      <div class="grand-total-row">
-        <span>Total Allocated to Home Department:</span>
-        <span id="total-allocated">$0.00</span>
-      </div>
-      <div class="grand-total-row">
-        <span>Total Allocated to Home Department / Core Fund:</span>
-        <span id="total-allocated-core">$0.00</span>
-      </div>
-    </div>
 
+
+
+
+
+    </div>
+    <div id="flexible-container" class="tab-content">
+      <!-- New flexible expenses content will go here -->
+      <div id="flexible-expenses"></div>
+    </div>
     <div class="save-section">
       <div>
         <div class="save-info">All changes will be saved to the current iteration: <span
@@ -392,756 +458,955 @@
       <button id="save-btn" type="button" class="save">Save Budget Data</button>
     </div>
   </div>
+</body>
 
 
-  <script>
-    // Replace the script section in index2.html with this updated version
-    document.addEventListener('DOMContentLoaded', function () {
-      // Global variables
-      let budgetData = null;
-      let employeeData = [];
-      let departments = ['IT', 'Finance', 'Marketing', 'Operations', 'HR'];
-      let currentDepartment = 'IT';
-      let currentIteration = 'FY25';
-      let hasValidationErrors = false;
-      let availableIterations = [];
+<script>
+  // Replace the script section in index2.html with this updated version
+  document.addEventListener('DOMContentLoaded', function () {
+    // Global variables
+    let budgetData = null;
+    let employeeData = [];
+    let departments = ['IT', 'Finance', 'Marketing', 'Operations', 'HR'];
+    let currentDepartment = 'IT';
+    let currentIteration = 'FY25';
+    let hasValidationErrors = false;
+    let availableIterations = [];
 
-      // Initialize the application
-      init();
+    // Initialize the application
+    init();
 
-      async function init() {
-        try {
-          // Fetch data from API endpoint/JSON file
-          await fetchBudgetData();
-          setupEventListeners();
-          loadIterationData(currentIteration);
-          updateIterationUI();
-          renderEmployees();
-          updateTotals();
-          validateAllEmployees();
-        } catch (error) {
-          console.error('Failed to initialize application:', error);
-          document.getElementById('employee-containers').innerHTML =
-            `<div class="error-text">Failed to load employee data. Please try again.</div>`;
-        }
+    async function init() {
+      try {
+        // Fetch data from API endpoint/JSON file
+        await fetchBudgetData();
+        setupEventListeners();
+        loadIterationData(currentIteration);
+        updateIterationUI();
+        renderEmployees();
+        renderExpenses();
+        updateTotals();
+        validateAllEmployees();
+        document.querySelector('.tab-container').classList.add('staff-active');
+      } catch (error) {
+        console.error('Failed to initialize application:', error);
+        document.getElementById('employee-containers').innerHTML =
+          `<div class="error-text">Failed to load employee data. Please try again.</div>`;
       }
+    }
 
-      async function fetchBudgetData() {
-        try {
-          // In a real application, this would be a fetch call to an API endpoint
-          // For this example, we'll simulate fetching the data
-          const response = await fetch('budget-data.json');
-          if (!response.ok) {
-            throw new Error('Failed to fetch budget data');
+    async function fetchBudgetData() {
+      try {
+        // In a real application, this would be a fetch call to an API endpoint
+        // For this example, we'll simulate fetching the data
+        const response = await fetch('budget-data.json');
+        if (!response.ok) {
+          throw new Error('Failed to fetch budget data');
+        }
+        budgetData = await response.json();
+
+        // Extract available iterations from metadata
+        availableIterations = budgetData.metadata.availableIterations;
+
+        // Extract departments from budgetData
+        departments = budgetData.departments.sort((a, b) => a.value.localeCompare(b.value));
+        // Set the currentDepartment to the first department value
+        if (departments.length > 0) {
+          currentDepartment = departments[0].value;
+        }
+
+        // Populate iteration dropdown
+        const iterationDropdown = document.getElementById('iteration-filter');
+        iterationDropdown.innerHTML = '';
+        availableIterations.forEach(iteration => {
+          const option = document.createElement('option');
+          option.value = iteration.id;
+          option.textContent = iteration.name;
+          if (iteration.id === currentIteration) {
+            option.selected = true;
           }
-          budgetData = await response.json();
-
-          // Extract available iterations from metadata
-          availableIterations = budgetData.metadata.availableIterations;
-
-          // Extract departments from budgetData
-          departments = budgetData.departments.sort((a, b) => a.value.localeCompare(b.value));
-          // Set the currentDepartment to the first department value
-          if (departments.length > 0) {
-            currentDepartment = departments[0].value;
-          }
-
-          // Populate iteration dropdown
-          const iterationDropdown = document.getElementById('iteration-filter');
-          iterationDropdown.innerHTML = '';
-          availableIterations.forEach(iteration => {
-            const option = document.createElement('option');
-            option.value = iteration.id;
-            option.textContent = iteration.name;
-            if (iteration.id === currentIteration) {
-              option.selected = true;
-            }
-            iterationDropdown.appendChild(option);
-          });
-
-          // Populate department dropdown
-          const departmentDropdown = document.getElementById('department-filter');
-          departmentDropdown.innerHTML = '';
-          departments.forEach(dept => {
-            const option = document.createElement('option');
-            option.value = dept.value;
-            option.textContent = dept.label;
-            if (dept.value === currentDepartment) {
-              option.selected = true;
-            }
-            departmentDropdown.appendChild(option);
-          });
-
-        } catch (error) {
-          console.error('Failed to fetch budget data:', error);
-          throw error;
-        }
-      }
-
-      function loadIterationData(iterationId) {
-        const iteration = budgetData.iterations.find(iter => iter.iterationId === iterationId);
-        if (!iteration) {
-          console.error(`Iteration with ID ${iterationId} not found`);
-          return;
-        }
-
-        employeeData = iteration.employees;
-        currentIteration = iterationId;
-      }
-
-      function updateIterationUI() {
-        document.getElementById('current-iteration-display').textContent =
-          availableIterations.find(iter => iter.id === currentIteration)?.name || currentIteration;
-      }
-
-      function setupEventListeners() {
-        // Department filter change event
-        document.getElementById('department-filter').addEventListener('change', function (e) {
-          currentDepartment = e.target.value;
-          renderEmployees();
-          updateTotals();
-          validateAllEmployees();
+          iterationDropdown.appendChild(option);
         });
 
-        // Iteration filter change event
-        document.getElementById('iteration-filter').addEventListener('change', function (e) {
-          currentIteration = e.target.value;
-          loadIterationData(currentIteration);
-          updateIterationUI();
-          renderEmployees();
-          updateTotals();
-          validateAllEmployees();
-        });
-
-        // Add event listener for both add-employee-btn (top of page) and add-employee-btn2 (bottom of page)
-        document.querySelectorAll('#add-employee-btn, #add-employee-btn2').forEach(button => {
-          button.addEventListener('click', () => {
-            addNewEmployee();
-            window.scrollTo({
-              top: document.body.scrollHeight, // Scroll to the bottom
-              behavior: "smooth"               // Smooth scroll
-            });
-          });
-        });
-
-
-        // Save button
-        document.getElementById('save-btn').addEventListener('click', saveData);
-      }
-
-      function renderEmployees() {
-        const container = document.getElementById('employee-containers');
-        container.innerHTML = '';
-        // Filter employees by home department
-        const filteredEmployees = employeeData.filter(employee =>
-          employee.homeDepartment === currentDepartment
-        );
-
-        if (filteredEmployees.length === 0) {
-          container.innerHTML = '<div class="loading">No employees found for the selected department.</div>';
-          return;
-        }
-
-        filteredEmployees.forEach(employee => {
-          container.appendChild(createEmployeeBox(employee));
-        });
-      }
-
-      function createEmployeeBox(employee) {
-        const box = document.createElement('div');
-        box.className = 'employee-box';
-        box.dataset.employeeId = employee.id;
-
-        // Employee header section
-        //const header = document.createElement('div');
-        //header.className = 'employee-header';
-
-        //const title = document.createElement('h3');
-        //title.textContent = employee.name;
-        //header.appendChild(title);
-
-
-
-        //box.appendChild(header);
-
-        // Employee info section
-        const info = document.createElement('div');
-        info.className = 'employee-info';
-
-        // Name field
-        const nameGroup = document.createElement('div');
-        nameGroup.className = 'field-group';
-        const nameLabel = document.createElement('label');
-        nameLabel.textContent = 'Employee Name';
-        const nameInput = document.createElement('input');
-        nameInput.type = 'text';
-        nameInput.value = employee.name;
-        nameInput.disabled = employee.isExisting;
-        nameInput.addEventListener('change', e => updateEmployeeField(employee.id, 'name', e.target.value));
-        nameGroup.appendChild(nameLabel);
-        nameGroup.appendChild(nameInput);
-        info.appendChild(nameGroup);
-
-        // Job Title field
-        const titleGroup = document.createElement('div');
-        titleGroup.className = 'field-group';
-        const titleLabel = document.createElement('label');
-        titleLabel.textContent = 'Job Title';
-        const titleInput = document.createElement('input');
-        titleInput.type = 'text';
-        titleInput.value = employee.jobTitle;
-        titleInput.addEventListener('change', e => updateEmployeeField(employee.id, 'jobTitle', e.target.value));
-        titleGroup.appendChild(titleLabel);
-        titleGroup.appendChild(titleInput);
-        info.appendChild(titleGroup);
-
-        // Salary field
-        const salaryGroup = document.createElement('div');
-        salaryGroup.className = 'field-group';
-        const salaryLabel = document.createElement('label');
-        salaryLabel.textContent = 'Annual Salary';
-        const salaryInput = document.createElement('input');
-        salaryInput.type = 'text';
-        salaryInput.value = formatCurrency(employee.salary);
-        salaryInput.addEventListener('change', e => {
-          // Get the raw input value, remove non-numeric characters (except dots)
-          let rawValue = e.target.value.replace(/[^0-9.]/g, '');
-
-          // Validate if the value is a whole number
-          if (!/^\d+$/.test(rawValue)) {  // Check if the value is a whole number
-            alert("Please enter a valid whole number.");
-            e.target.value = previousValue; // Reset to the previous valid value
-          } else {
-            // If valid, format and update the input
-            e.target.value = formatCurrency(parseInt(rawValue));
-
-            // Remove commas and $ sign before passing to updateSalary
-            let cleanValue = e.target.value.replace(/[^0-9.]/g, ''); // Remove any commas and $ sign
-            updateSalary(employee.id, parseFloat(cleanValue));
-
-            // Update the previous value to the current valid value
-            previousValue = e.target.value; // Save the newly formatted value
-          }
-        });
-
-        salaryGroup.appendChild(salaryLabel);
-        salaryGroup.appendChild(salaryInput);
-        info.appendChild(salaryGroup);
-
-        // Delete button for new employees only
-        if (!employee.isExisting) {
-          const deleteBtn = document.createElement('button');
-          deleteBtn.className = 'danger';
-          deleteBtn.textContent = 'Delete Employee';
-          deleteBtn.addEventListener('click', () => deleteEmployee(employee.id));
-          info.appendChild(deleteBtn);
-        }
-
-        box.appendChild(info);
-
-        // Column headers
-        const headers = document.createElement('div');
-        headers.className = 'column-headers';
-
-        // Create the button
-        const addLineBtn = document.createElement('button');
-        addLineBtn.textContent = '+';
-        addLineBtn.classList.add('add-line');
-        // Add event listener before appending
-        addLineBtn.addEventListener('click', () => addAllocationLine(employee.id));
-
-        // Append button first
-        headers.appendChild(addLineBtn);
-
-        // Create the headers separately and append them one by one
-        const columnTitles = [
-          'Allocation %', 'Department', '% Core', 'Jul', 'Aug', 'Sep', 'Oct',
-          'Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Total' // Added 'Total'
-        ];
-
-        columnTitles.forEach(title => {
-          const div = document.createElement('div');
-          div.textContent = title;
-          headers.appendChild(div);
-        });
-
-        box.appendChild(headers);
-
-        // Allocation lines
-        employee.allocations.forEach(allocation => {
-          box.appendChild(createAllocationLine(employee.id, allocation));
-        });
-
-        box.appendChild(createGrandTotalRow(employee));
-
-        // Add allocation button
-        //const actions = document.createElement('div');
-        //actions.className = 'allocation-actions';
-        //const addLineBtn = document.createElement('button');
-        //addLineBtn.textContent = '+ Add Allocation Line';
-        //addLineBtn.addEventListener('click', () => addAllocationLine(employee.id));
-        //actions.appendChild(addLineBtn);
-        //box.appendChild(actions);
-
-        // Error message container (initially empty)
-        const errorMsg = document.createElement('div');
-        errorMsg.className = 'error-message';
-        errorMsg.id = `error-${employee.id}`;
-        box.appendChild(errorMsg);
-
-        return box;
-      }
-
-      function createAllocationLine(employeeId, allocation) {
-        const line = document.createElement('div'); 0
-        line.className = 'allocation-line';
-        line.dataset.allocationId = allocation.id;
-
-        // Delete button
-        const deleteBtn = document.createElement('button');
-        deleteBtn.className = 'delete-line';
-        deleteBtn.innerHTML = '&times;';
-        deleteBtn.addEventListener('click', () => deleteAllocationLine(employeeId, allocation.id));
-        line.appendChild(deleteBtn);
-
-        // Allocation percentage
-        const percentInput = document.createElement('input');
-        percentInput.type = 'text';
-        percentInput.min = 0;
-        percentInput.max = 100;
-        percentInput.value = allocation.percent + '%';
-        percentInput.addEventListener('change', e => {
-          let value = parseFloat(e.target.value.replace(/[^0-9.]/g, ''));
-
-          // Validate if the value is between 0 and 100
-          if (value >= 0 && value <= 100) {
-            // If valid, update the value and proceed with the logic
-            previousValue = e.target.value; // Update the previous value with the valid one
-            updateAllocationPercent(employeeId, allocation.id, parseFloat(e.target.value))
-          } else {
-            alert('Please enter a value between 0 and 100.');
-            // Reset to the previous valid value
-            e.target.value = previousValue + '%';
-          }
-        });
-        line.appendChild(percentInput);
-
-        // Department dropdown
-        const deptSelect = document.createElement('select');
+        // Populate department dropdown
+        const departmentDropdown = document.getElementById('department-filter');
+        departmentDropdown.innerHTML = '';
         departments.forEach(dept => {
           const option = document.createElement('option');
           option.value = dept.value;
           option.textContent = dept.label;
-          if (dept.value === allocation.department) {
+          if (dept.value === currentDepartment) {
             option.selected = true;
           }
-          deptSelect.appendChild(option);
+          departmentDropdown.appendChild(option);
         });
-        deptSelect.addEventListener('change', e =>
-          updateAllocationField(employeeId, allocation.id, 'department', e.target.value)
-        );
-        line.appendChild(deptSelect);
 
-        // Core Allocation percentage
-        const percentCoreInput = document.createElement('input');
-        percentCoreInput.type = 'text';
-        percentCoreInput.min = 0;
-        percentCoreInput.max = 100;
-        percentCoreInput.value = allocation.percentCore + '%';
+      } catch (error) {
+        console.error('Failed to fetch budget data:', error);
+        throw error;
+      }
+    }
 
-        percentCoreInput.addEventListener('change', e => {
-          let value = parseFloat(e.target.value.replace(/[^0-9.]/g, ''));
+    function loadIterationData(iterationId) {
+      const iteration = budgetData.iterations.find(iter => iter.iterationId === iterationId);
+      if (!iteration) {
+        console.error(`Iteration with ID ${iterationId} not found`);
+        return;
+      }
 
-          // Validate if the value is between 0 and 100
-          if (value >= 0 && value <= 100) {
-            updateAllocationField(employeeId, allocation.id, 'percentCore', value);
+      employeeData = iteration.employees;
+      currentIteration = iterationId;
+    }
 
-            // Format the input
-            e.target.value = value + '%';
+    function updateIterationUI() {
+      document.getElementById('current-iteration-display').textContent =
+        availableIterations.find(iter => iter.id === currentIteration)?.name || currentIteration;
+    }
 
-            // Update totals to reflect the new percentCore value
-            updateTotals();
+    function setupEventListeners() {
+      // Department filter change event
+      document.getElementById('department-filter').addEventListener('change', function (e) {
+        currentDepartment = e.target.value;
+        renderEmployees();
+        updateTotals();
+        validateAllEmployees();
+      });
 
-            // Optional: validate the employee
-            //validateEmployee(employeeId);
+      // Iteration filter change event
+      document.getElementById('iteration-filter').addEventListener('change', function (e) {
+        currentIteration = e.target.value;
+        loadIterationData(currentIteration);
+        updateIterationUI();
+        renderEmployees();
+        updateTotals();
+        validateAllEmployees();
+      });
 
+      // Add event listener for both add-employee-btn (top of page) and add-employee-btn2 (bottom of page)
+      document.querySelectorAll('#add-employee-btn, #add-employee-btn2').forEach(button => {
+        button.addEventListener('click', () => {
+          addNewEmployee();
+          window.scrollTo({
+            top: document.body.scrollHeight, // Scroll to the bottom
+            behavior: "smooth"               // Smooth scroll
+          });
+        });
+      });
+
+
+      // Save button
+      document.getElementById('save-btn').addEventListener('click', saveData);
+
+      // Add tab switching functionality
+      document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+          // Remove active class from all tabs and content
+          document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+          document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+          // Add active class to clicked tab and corresponding content
+          tab.classList.add('active');
+          const tabContent = document.getElementById(`${tab.dataset.tab}-container`);
+          tabContent.classList.add('active');
+
+          // Update tab container class based on active tab
+          const tabContainer = document.querySelector('.tab-container');
+          if (tab.dataset.tab === 'staff') {
+            tabContainer.classList.add('staff-active');
           } else {
-            alert('Please enter a value between 0 and 100.');
-            // Reset to the previous valid value
-            e.target.value = allocation.percentCore + '%';
+            tabContainer.classList.remove('staff-active');
           }
         });
-        line.appendChild(percentCoreInput);
+      });
+    }
 
-        // Monthly values
-        allocation.monthlyValues.forEach((value, index) => {
-          const monthInput = document.createElement('input');
-          monthInput.type = 'text';
-          monthInput.className = 'monthly-input';
-          monthInput.value = formatCurrency(value);
-          monthInput.readOnly = false;
-          // Event listener to handle change and format the input value
-          monthInput.addEventListener('blur', (e) => { // 'blur' triggers when the user leaves the input box
-            let rawValue = e.target.value.replace(/[^0-9.]/g, ''); // Remove non-numeric characters (except dot)
+    function renderEmployees() {
+      const container = document.getElementById('employee-containers');
+      container.innerHTML = '';
+      // Filter employees by home department
+      const filteredEmployees = employeeData.filter(employee =>
+        employee.homeDepartment === currentDepartment
+      );
 
-            // Validate if the value is a whole number
-            if (!/^\d+$/.test(rawValue)) {  // Check if the value is a whole number
-              alert("Please enter a valid whole number.");
-              e.target.value = formatCurrency(parseInt(value)); // Reset to the previous valid value
-            } else {
-              // Parse and format the input value
-              let newValue = parseInt(rawValue);
-              e.target.value = formatCurrency(newValue);
+      if (filteredEmployees.length === 0) {
+        container.innerHTML = '<div class="loading">No employees found for the selected department.</div>';
+        return;
+      }
 
-              // Find the employee and allocation to update
-              const employee = findEmployee(employeeId);
-              if (employee) {
-                const allocIndex = employee.allocations.findIndex(a => a.id === allocation.id);
-                if (allocIndex !== -1) {
-                  // Update the monthly value in the actual employee data structure
-                  employee.allocations[allocIndex].monthlyValues[index] = newValue;
+      filteredEmployees.forEach(employee => {
+        container.appendChild(createEmployeeBox(employee));
+      });
+    }
 
-                  // Run validation for this employee
-                  validateEmployee(employee);
+    function renderExpenses() {
+      const container = document.getElementById('flexible-expenses');
+      container.innerHTML = 'Stuff goes here!';
 
-                  // Update totals to reflect the new monthly value
-                  updateTotals();
-                }
+
+
+    }
+
+    
+    function createEmployeeBox(employee) {
+      const box = document.createElement('div');
+      box.className = 'employee-box';
+      box.dataset.employeeId = employee.id;
+
+      // Employee header section
+      //const header = document.createElement('div');
+      //header.className = 'employee-header';
+
+      //const title = document.createElement('h3');
+      //title.textContent = employee.name;
+      //header.appendChild(title);
+
+
+
+      //box.appendChild(header);
+
+      // Employee info section
+      const info = document.createElement('div');
+      info.className = 'employee-info';
+
+      // Name field
+      const nameGroup = document.createElement('div');
+      nameGroup.className = 'field-group';
+      const nameLabel = document.createElement('label');
+      nameLabel.textContent = 'Employee Name';
+      const nameInput = document.createElement('input');
+      nameInput.type = 'text';
+      nameInput.value = employee.name;
+      nameInput.disabled = employee.isExisting;
+      nameInput.addEventListener('change', e => updateEmployeeField(employee.id, 'name', e.target.value));
+      nameGroup.appendChild(nameLabel);
+      nameGroup.appendChild(nameInput);
+      info.appendChild(nameGroup);
+
+      // Job Title field
+      const titleGroup = document.createElement('div');
+      titleGroup.className = 'field-group';
+      const titleLabel = document.createElement('label');
+      titleLabel.textContent = 'Job Title';
+      const titleInput = document.createElement('input');
+      titleInput.type = 'text';
+      titleInput.value = employee.jobTitle;
+      titleInput.addEventListener('change', e => updateEmployeeField(employee.id, 'jobTitle', e.target.value));
+      titleGroup.appendChild(titleLabel);
+      titleGroup.appendChild(titleInput);
+      info.appendChild(titleGroup);
+
+      // Salary field
+      const salaryGroup = document.createElement('div');
+      salaryGroup.className = 'field-group';
+      const salaryLabel = document.createElement('label');
+      salaryLabel.textContent = 'Annual Salary';
+      const salaryInput = document.createElement('input');
+      salaryInput.type = 'text';
+      salaryInput.value = formatCurrency(employee.salary);
+      salaryInput.addEventListener('change', e => {
+        // Get the raw input value, remove non-numeric characters (except dots)
+        let rawValue = e.target.value.replace(/[^0-9.]/g, '');
+
+        // Validate if the value is a whole number
+        if (!/^\d+$/.test(rawValue)) {  // Check if the value is a whole number
+          alert("Please enter a valid whole number.");
+          e.target.value = previousValue; // Reset to the previous valid value
+        } else {
+          // If valid, format and update the input
+          e.target.value = formatCurrency(parseInt(rawValue));
+
+          // Remove commas and $ sign before passing to updateSalary
+          let cleanValue = e.target.value.replace(/[^0-9.]/g, ''); // Remove any commas and $ sign
+          updateSalary(employee.id, parseFloat(cleanValue));
+
+          // Update the previous value to the current valid value
+          previousValue = e.target.value; // Save the newly formatted value
+        }
+      });
+
+      salaryGroup.appendChild(salaryLabel);
+      salaryGroup.appendChild(salaryInput);
+      info.appendChild(salaryGroup);
+
+      // Delete button for new employees only
+      if (!employee.isExisting) {
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'danger';
+        deleteBtn.textContent = 'Delete Employee';
+        deleteBtn.addEventListener('click', () => deleteEmployee(employee.id));
+        info.appendChild(deleteBtn);
+      }
+
+      box.appendChild(info);
+
+      // Column headers
+      const headers = document.createElement('div');
+      headers.className = 'column-headers';
+
+      // Create the button
+      const addLineBtn = document.createElement('button');
+      addLineBtn.textContent = '+';
+      addLineBtn.classList.add('add-line');
+      // Add event listener before appending
+      addLineBtn.addEventListener('click', () => addAllocationLine(employee.id));
+
+      // Append button first
+      headers.appendChild(addLineBtn);
+
+      // Create the headers separately and append them one by one
+      const columnTitles = [
+        'Allocation %', 'Department', '% Core', 'Jul', 'Aug', 'Sep', 'Oct',
+        'Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Total' // Added 'Total'
+      ];
+
+      columnTitles.forEach(title => {
+        const div = document.createElement('div');
+        div.textContent = title;
+        headers.appendChild(div);
+      });
+
+      box.appendChild(headers);
+
+      // Allocation lines
+      employee.allocations.forEach(allocation => {
+        box.appendChild(createAllocationLine(employee.id, allocation));
+      });
+
+      box.appendChild(createGrandTotalRow(employee));
+
+      // Add allocation button
+      //const actions = document.createElement('div');
+      //actions.className = 'allocation-actions';
+      //const addLineBtn = document.createElement('button');
+      //addLineBtn.textContent = '+ Add Allocation Line';
+      //addLineBtn.addEventListener('click', () => addAllocationLine(employee.id));
+      //actions.appendChild(addLineBtn);
+      //box.appendChild(actions);
+
+      // Error message container (initially empty)
+      const errorMsg = document.createElement('div');
+      errorMsg.className = 'error-message';
+      errorMsg.id = `error-${employee.id}`;
+      box.appendChild(errorMsg);
+
+      return box;
+    }
+
+    function createAllocationLine(employeeId, allocation) {
+      const line = document.createElement('div'); 0
+      line.className = 'allocation-line';
+      line.dataset.allocationId = allocation.id;
+
+      // Delete button
+      const deleteBtn = document.createElement('button');
+      deleteBtn.className = 'delete-line';
+      deleteBtn.innerHTML = '&times;';
+      deleteBtn.addEventListener('click', () => deleteAllocationLine(employeeId, allocation.id));
+      line.appendChild(deleteBtn);
+
+      // Allocation percentage
+      const percentInput = document.createElement('input');
+      percentInput.type = 'text';
+      percentInput.min = 0;
+      percentInput.max = 100;
+      percentInput.value = allocation.percent + '%';
+      percentInput.addEventListener('change', e => {
+        let value = parseFloat(e.target.value.replace(/[^0-9.]/g, ''));
+
+        // Validate if the value is between 0 and 100
+        if (value >= 0 && value <= 100) {
+          // If valid, update the value and proceed with the logic
+          previousValue = e.target.value; // Update the previous value with the valid one
+          updateAllocationPercent(employeeId, allocation.id, parseFloat(e.target.value))
+        } else {
+          alert('Please enter a value between 0 and 100.');
+          // Reset to the previous valid value
+          e.target.value = previousValue + '%';
+        }
+      });
+      line.appendChild(percentInput);
+
+      // Department dropdown
+      const deptSelect = document.createElement('select');
+      departments.forEach(dept => {
+        const option = document.createElement('option');
+        option.value = dept.value;
+        option.textContent = dept.label;
+        if (dept.value === allocation.department) {
+          option.selected = true;
+        }
+        deptSelect.appendChild(option);
+      });
+      deptSelect.addEventListener('change', e =>
+        updateAllocationField(employeeId, allocation.id, 'department', e.target.value)
+      );
+      line.appendChild(deptSelect);
+
+      // Core Allocation percentage
+      const percentCoreInput = document.createElement('input');
+      percentCoreInput.type = 'text';
+      percentCoreInput.min = 0;
+      percentCoreInput.max = 100;
+      percentCoreInput.value = allocation.percentCore + '%';
+
+      percentCoreInput.addEventListener('change', e => {
+        let value = parseFloat(e.target.value.replace(/[^0-9.]/g, ''));
+
+        // Validate if the value is between 0 and 100
+        if (value >= 0 && value <= 100) {
+          updateAllocationField(employeeId, allocation.id, 'percentCore', value);
+
+          // Format the input
+          e.target.value = value + '%';
+
+          // Update totals to reflect the new percentCore value
+          updateTotals();
+
+          // Optional: validate the employee
+          //validateEmployee(employeeId);
+
+        } else {
+          alert('Please enter a value between 0 and 100.');
+          // Reset to the previous valid value
+          e.target.value = allocation.percentCore + '%';
+        }
+      });
+      line.appendChild(percentCoreInput);
+
+      // Monthly values
+      allocation.monthlyValues.forEach((value, index) => {
+        const monthInput = document.createElement('input');
+        monthInput.type = 'text';
+        monthInput.className = 'monthly-input';
+        monthInput.value = formatCurrency(value);
+        monthInput.readOnly = false;
+        // Event listener to handle change and format the input value
+        monthInput.addEventListener('blur', (e) => { // 'blur' triggers when the user leaves the input box
+          let rawValue = e.target.value.replace(/[^0-9.]/g, ''); // Remove non-numeric characters (except dot)
+
+          // Validate if the value is a whole number
+          if (!/^\d+$/.test(rawValue)) {  // Check if the value is a whole number
+            alert("Please enter a valid whole number.");
+            e.target.value = formatCurrency(parseInt(value)); // Reset to the previous valid value
+          } else {
+            // Parse and format the input value
+            let newValue = parseInt(rawValue);
+            e.target.value = formatCurrency(newValue);
+
+            // Find the employee and allocation to update
+            const employee = findEmployee(employeeId);
+            if (employee) {
+              const allocIndex = employee.allocations.findIndex(a => a.id === allocation.id);
+              if (allocIndex !== -1) {
+                // Update the monthly value in the actual employee data structure
+                employee.allocations[allocIndex].monthlyValues[index] = newValue;
+
+                // Run validation for this employee
+                validateEmployee(employee);
+
+                // Update totals to reflect the new monthly value
+                updateTotals();
               }
             }
-          });
-          line.appendChild(monthInput);
-        });
-
-        // Calculate and display the total of monthly values
-        const totalValue = allocation.monthlyValues.reduce((sum, val) => sum + val, 0);
-        const totalCell = document.createElement('div');
-        totalCell.className = 'monthly-input total-value';
-        totalCell.textContent = formatCurrency(totalValue);
-        totalCell.id = `linetotal-${allocation.id}`; // Unique ID using allocation.id
-        line.appendChild(totalCell);
-
-        return line;
-      }
-
-      function addNewEmployee() {
-        const newEmployee = {
-          id: Date.now(), // Use timestamp as temporary ID
-          name: 'New Employee',
-          jobTitle: 'Job Title',
-          salary: 0,
-          homeDepartment: currentDepartment,
-          isExisting: false,
-          allocations: [
-            {
-              id: Date.now() + 1, // Another temporary ID
-              department: currentDepartment,
-              percent: 100,
-              percentCore: 100,
-              monthlyValues: Array(12).fill(0)
-            }
-          ]
-        };
-
-        employeeData.push(newEmployee);
-        renderEmployees();
-        updateTotals();
-        validateAllEmployees();
-      }
-
-      function deleteEmployee(employeeId) {
-        if (confirm('Are you sure you want to delete this employee?')) {
-          employeeData = employeeData.filter(employee => employee.id !== employeeId);
-          renderEmployees();
-          updateTotals();
-          validateAllEmployees();
-        }
-      }
-
-      function addAllocationLine(employeeId) {
-        const employee = findEmployee(employeeId);
-        if (!employee) return;
-
-        const newAllocation = {
-          id: Date.now(), // Use timestamp as temporary ID
-          department: currentDepartment,
-          percent: 0,
-          percentCore: 100,
-          monthlyValues: generateMonthlyValues(employee.salary, 0)
-        };
-
-        employee.allocations.push(newAllocation);
-        renderEmployees();
-        validateAllEmployees();
-      }
-
-      function deleteAllocationLine(employeeId, allocationId) {
-        const employee = findEmployee(employeeId);
-        if (!employee) return;
-
-        if (employee.allocations.length <= 1) {
-          alert('Cannot delete the last allocation line. Every employee must have at least one allocation.');
-          return;
-        }
-
-        employee.allocations = employee.allocations.filter(allocation => allocation.id !== allocationId);
-        renderEmployees();
-        validateAllEmployees();
-        updateTotals();
-      }
-
-      function updateEmployeeField(employeeId, field, value) {
-        const employee = findEmployee(employeeId);
-        if (!employee) return;
-
-        employee[field] = value;
-      }
-
-      function updateSalary(employeeId, newSalary) {
-        const employee = findEmployee(employeeId);
-        if (!employee) return;
-
-        employee.salary = newSalary;
-
-        // Update all allocation monthly values
-        employee.allocations.forEach(allocation => {
-          allocation.monthlyValues = generateMonthlyValues(newSalary, allocation.percent);
-        });
-
-        renderEmployees();
-        updateTotals();
-        validateAllEmployees();
-      }
-
-      function updateAllocationField(employeeId, allocationId, field, value) {
-        const employee = findEmployee(employeeId);
-        if (!employee) return;
-
-        const allocation = employee.allocations.find(a => a.id === allocationId);
-        if (!allocation) return;
-
-        allocation[field] = value;
-
-        // If changing department, may need to update totals
-        updateTotals();
-        validateAllEmployees();
-      }
-
-      function updateAllocationPercent(employeeId, allocationId, newPercent) {
-        const employee = findEmployee(employeeId);
-        if (!employee) return;
-
-        const allocation = employee.allocations.find(a => a.id === allocationId);
-        if (!allocation) return;
-
-        allocation.percent = newPercent;
-        allocation.monthlyValues = generateMonthlyValues(employee.salary, newPercent);
-
-        renderEmployees();
-        validateAllEmployees();
-        updateTotals();
-      }
-
-      function validateEmployee(employee) {
-        // Check if total allocation is more than 100%
-        const totalPercent = employee.allocations.reduce((sum, allocation) =>
-          sum + allocation.percent, 0);
-
-        const totalAllocatedValue = employee.allocations.reduce((sum, allocation) => {
-          // Check if allocation.monthlyValues is an array and is defined
-          if (Array.isArray(allocation.monthlyValues)) {
-            const allocationTotal = allocation.monthlyValues.reduce((subSum, value) => subSum + value, 0);
-            return sum + allocationTotal; // Add the allocation total to the main sum
-          } else {
-            // If monthlyValues is not an array or is undefined, skip this allocation
-            return sum;
-          }
-        }, 0);
-        const errorElement = document.getElementById(`error-${employee.id}`);
-        const employeeBox = document.querySelector(`.employee-box[data-employee-id="${employee.id}"]`);
-
-        errorElement.textContent = '';
-
-        if (totalPercent > 100) {
-          errorElement.textContent += 'Allocations must not be greater than 100%.';
-          employeeBox.classList.add('error');
-        }
-        //Allow for small rounding differences (e.g., $11 difference in a $100,000 salary)
-        const roundingTolerance = Math.max(12, Math.round(employee.salary * 0.0001)); // 0.01% tolerance or at least $12
-
-        if (totalAllocatedValue - employee.salary > roundingTolerance) {
-          errorElement.textContent += '  The total of all Monthly values must not be greater than the salary amount.'; employeeBox.classList.add('error');
-        }
-        if (totalPercent > 100 || (totalAllocatedValue - employee.salary > roundingTolerance)) {
-          return false;
-          console.log()
-        }
-
-        else {
-          errorElement.textContent = '';
-          employeeBox.classList.remove('error');
-          return true;
-        }
-      }
-
-      function validateAllEmployees() {
-        const filteredEmployees = employeeData.filter(employee =>
-          employee.homeDepartment === currentDepartment
-        );
-
-        let validationErrors = 0;
-
-        filteredEmployees.forEach(employee => {
-          if (!validateEmployee(employee)) {
-            validationErrors++;
           }
         });
+        line.appendChild(monthInput);
+      });
 
-        // Update save button state
-        hasValidationErrors = validationErrors > 0;
-        const saveBtn = document.getElementById('save-btn');
-        saveBtn.disabled = hasValidationErrors;
-
-        // Update validation summary
-        const validationSummary = document.getElementById('validation-summary');
-        if (hasValidationErrors) {
-          validationSummary.textContent = `Please fix ${validationErrors} validation error${validationErrors > 1 ? 's' : ''} before saving.`;
-        } else {
-          validationSummary.textContent = '';
-        }
-
-        return !hasValidationErrors;
-      }
-
-      function updateTotals() {
-  const filteredEmployees = employeeData.filter(employee =>
-    employee.homeDepartment === currentDepartment
-  );
-
-  // Calculate total salaries
-  const totalSalary = filteredEmployees.reduce((sum, employee) =>
-    sum + employee.salary, 0);
-
-  // Calculate total allocated to home department
-  let totalAllocated = 0;
-  filteredEmployees.forEach(employee => {
-    let employeeTotal = 0;
-    employee.allocations.forEach(allocation => {
-      if (allocation.department === currentDepartment) {
-        totalAllocated += (employee.salary * (allocation.percent / 100));
-      }
-
-      // Update the total for each allocation line
+      // Calculate and display the total of monthly values
       const totalValue = allocation.monthlyValues.reduce((sum, val) => sum + val, 0);
-      const totalCell = document.getElementById(`linetotal-${allocation.id}`);
-      if (totalCell) {
-        totalCell.textContent = formatCurrency(totalValue);
-      }
+      const totalCell = document.createElement('div');
+      totalCell.className = 'monthly-input total-value';
+      totalCell.textContent = formatCurrency(totalValue);
+      totalCell.id = `linetotal-${allocation.id}`; // Unique ID using allocation.id
+      line.appendChild(totalCell);
 
-      // Add to employee's total
-      employeeTotal += totalValue;
-    });
-
-    // Update the grand total for the employee
-    const grandTotalCell = document.getElementById(`grandtotal-${employee.id}`);
-    if (grandTotalCell) {
-      grandTotalCell.textContent = `${formatCurrency(employeeTotal)}`;
+      return line;
     }
-  });
 
-  // Calculate total allocated to core
-  let totalCore = 0;
-  filteredEmployees.forEach(employee => {
-    employee.allocations.forEach(allocation => {
-      if (allocation.department === currentDepartment) {
-        totalCore += (employee.salary * (allocation.percent / 100) * (allocation.percentCore / 100));
+    function addNewEmployee() {
+      const newEmployee = {
+        id: Date.now(), // Use timestamp as temporary ID
+        name: 'New Employee',
+        jobTitle: 'Job Title',
+        salary: 0,
+        homeDepartment: currentDepartment,
+        isExisting: false,
+        allocations: [
+          {
+            id: Date.now() + 1, // Another temporary ID
+            department: currentDepartment,
+            percent: 100,
+            percentCore: 100,
+            monthlyValues: Array(12).fill(0)
+          }
+        ]
+      };
+
+      employeeData.push(newEmployee);
+      renderEmployees();
+      updateTotals();
+      validateAllEmployees();
+    }
+
+    function deleteEmployee(employeeId) {
+      if (confirm('Are you sure you want to delete this employee?')) {
+        employeeData = employeeData.filter(employee => employee.id !== employeeId);
+        renderEmployees();
+        updateTotals();
+        validateAllEmployees();
       }
-    });
-  });
+    }
 
-  document.getElementById('total-salaries').textContent = formatCurrency(totalSalary);
-  document.getElementById('total-allocated').textContent = formatCurrency(totalAllocated);
-  document.getElementById('total-allocated-core').textContent = formatCurrency(totalCore);
-}
+    function addAllocationLine(employeeId) {
+      const employee = findEmployee(employeeId);
+      if (!employee) return;
 
-function createGrandTotalRow(employee) {
-    const grandTotalRow = document.createElement('div');
-    grandTotalRow.className = 'allocation-line grand-total-value';
+      const newAllocation = {
+        id: Date.now(), // Use timestamp as temporary ID
+        department: currentDepartment,
+        percent: 0,
+        percentCore: 100,
+        monthlyValues: generateMonthlyValues(employee.salary, 0)
+      };
 
-    // Empty cells to align with the structure of allocation lines
-    for (let i = 0; i < 16; i++) {
+      employee.allocations.push(newAllocation);
+      renderEmployees();
+      validateAllEmployees();
+    }
+
+    function deleteAllocationLine(employeeId, allocationId) {
+      const employee = findEmployee(employeeId);
+      if (!employee) return;
+
+      if (employee.allocations.length <= 1) {
+        alert('Cannot delete the last allocation line. Every employee must have at least one allocation.');
+        return;
+      }
+
+      employee.allocations = employee.allocations.filter(allocation => allocation.id !== allocationId);
+      renderEmployees();
+      validateAllEmployees();
+      updateTotals();
+    }
+
+    function updateEmployeeField(employeeId, field, value) {
+      const employee = findEmployee(employeeId);
+      if (!employee) return;
+
+      employee[field] = value;
+    }
+
+    function updateSalary(employeeId, newSalary) {
+      const employee = findEmployee(employeeId);
+      if (!employee) return;
+
+      employee.salary = newSalary;
+
+      // Update all allocation monthly values
+      employee.allocations.forEach(allocation => {
+        allocation.monthlyValues = generateMonthlyValues(newSalary, allocation.percent);
+      });
+
+      renderEmployees();
+      updateTotals();
+      validateAllEmployees();
+    }
+
+    function updateAllocationField(employeeId, allocationId, field, value) {
+      const employee = findEmployee(employeeId);
+      if (!employee) return;
+
+      const allocation = employee.allocations.find(a => a.id === allocationId);
+      if (!allocation) return;
+
+      allocation[field] = value;
+
+      // If changing department, may need to update totals
+      updateTotals();
+      validateAllEmployees();
+    }
+
+    function updateAllocationPercent(employeeId, allocationId, newPercent) {
+      const employee = findEmployee(employeeId);
+      if (!employee) return;
+
+      const allocation = employee.allocations.find(a => a.id === allocationId);
+      if (!allocation) return;
+
+      allocation.percent = newPercent;
+      allocation.monthlyValues = generateMonthlyValues(employee.salary, newPercent);
+
+      renderEmployees();
+      validateAllEmployees();
+      updateTotals();
+    }
+
+    function validateEmployee(employee) {
+      // Check if total allocation is more than 100%
+      const totalPercent = employee.allocations.reduce((sum, allocation) =>
+        sum + allocation.percent, 0);
+
+      const totalAllocatedValue = employee.allocations.reduce((sum, allocation) => {
+        // Check if allocation.monthlyValues is an array and is defined
+        if (Array.isArray(allocation.monthlyValues)) {
+          const allocationTotal = allocation.monthlyValues.reduce((subSum, value) => subSum + value, 0);
+          return sum + allocationTotal; // Add the allocation total to the main sum
+        } else {
+          // If monthlyValues is not an array or is undefined, skip this allocation
+          return sum;
+        }
+      }, 0);
+      const errorElement = document.getElementById(`error-${employee.id}`);
+      const employeeBox = document.querySelector(`.employee-box[data-employee-id="${employee.id}"]`);
+
+      errorElement.textContent = '';
+
+      if (totalPercent > 100) {
+        errorElement.textContent += 'Allocations must not be greater than 100%.';
+        employeeBox.classList.add('error');
+      }
+      //Allow for small rounding differences (e.g., $11 difference in a $100,000 salary)
+      const roundingTolerance = Math.max(12, Math.round(employee.salary * 0.0001)); // 0.01% tolerance or at least $12
+
+      if (totalAllocatedValue - employee.salary > roundingTolerance) {
+        errorElement.textContent += '  The total of all Monthly values must not be greater than the salary amount.'; employeeBox.classList.add('error');
+      }
+      if (totalPercent > 100 || (totalAllocatedValue - employee.salary > roundingTolerance)) {
+        return false;
+        console.log()
+      }
+
+      else {
+        errorElement.textContent = '';
+        employeeBox.classList.remove('error');
+        return true;
+      }
+    }
+
+    function validateAllEmployees() {
+      const filteredEmployees = employeeData.filter(employee =>
+        employee.homeDepartment === currentDepartment
+      );
+
+      let validationErrors = 0;
+
+      filteredEmployees.forEach(employee => {
+        if (!validateEmployee(employee)) {
+          validationErrors++;
+        }
+      });
+
+      // Update save button state
+      hasValidationErrors = validationErrors > 0;
+      const saveBtn = document.getElementById('save-btn');
+      saveBtn.disabled = hasValidationErrors;
+
+      // Update validation summary
+      const validationSummary = document.getElementById('validation-summary');
+      if (hasValidationErrors) {
+        validationSummary.textContent = `Please fix ${validationErrors} staff validation error${validationErrors > 1 ? 's' : ''} before saving.`;
+      } else {
+        validationSummary.textContent = '';
+      }
+
+      return !hasValidationErrors;
+    }
+
+    function updateTotals() {
+      const filteredEmployees = employeeData.filter(employee =>
+        employee.homeDepartment === currentDepartment
+      );
+
+      // Calculate total salaries
+      const totalSalary = filteredEmployees.reduce((sum, employee) =>
+        sum + employee.salary, 0);
+
+      // Calculate total allocated to home department
+      let totalAllocated = 0;
+      filteredEmployees.forEach(employee => {
+        let employeeTotal = 0;
+        employee.allocations.forEach(allocation => {
+          if (allocation.department === currentDepartment) {
+            totalAllocated += (employee.salary * (allocation.percent / 100));
+          }
+
+          // Update the total for each allocation line
+          const totalValue = allocation.monthlyValues.reduce((sum, val) => sum + val, 0);
+          const totalCell = document.getElementById(`linetotal-${allocation.id}`);
+          if (totalCell) {
+            totalCell.textContent = formatCurrency(totalValue);
+          }
+
+          // Add to employee's total
+          employeeTotal += totalValue;
+        });
+
+        // Update the grand total for the employee
+        const grandTotalCell = document.getElementById(`grandtotal-${employee.id}`);
+        if (grandTotalCell) {
+          grandTotalCell.textContent = `${formatCurrency(employeeTotal)}`;
+        }
+      });
+
+      // Calculate total allocated to core
+      let totalCore = 0;
+      filteredEmployees.forEach(employee => {
+        employee.allocations.forEach(allocation => {
+          if (allocation.department === currentDepartment) {
+            totalCore += (employee.salary * (allocation.percent / 100) * (allocation.percentCore / 100));
+          }
+        });
+      });
+
+      document.getElementById('total-salaries').textContent = formatCurrency(totalSalary);
+      document.getElementById('total-allocated').textContent = formatCurrency(totalAllocated);
+      document.getElementById('total-allocated-core').textContent = formatCurrency(totalCore);
+    }
+
+    function createGrandTotalRow(employee) {
+      const grandTotalRow = document.createElement('div');
+      grandTotalRow.className = 'allocation-line grand-total-value';
+
+      // Empty cells to align with the structure of allocation lines
+      for (let i = 0; i < 16; i++) {
         const emptyCell = document.createElement('div');
         emptyCell.textContent = ''; // Keeps the structure aligned
         grandTotalRow.appendChild(emptyCell);
+      }
+
+      // Calculate the grand total of all allocations
+      const grandTotalValue = employee.allocations.reduce((sum, allocation) => {
+        return sum + allocation.monthlyValues.reduce((subSum, val) => subSum + val, 0);
+      }, 0);
+
+      // Grand total cell
+      const grandTotalCell = document.createElement('div');
+      grandTotalCell.textContent = formatCurrency(grandTotalValue);
+      grandTotalCell.id = `grandtotal-${employee.id}`;
+      grandTotalRow.appendChild(grandTotalCell);
+
+      return grandTotalRow;
     }
 
-    // Calculate the grand total of all allocations
-    const grandTotalValue = employee.allocations.reduce((sum, allocation) => {
-        return sum + allocation.monthlyValues.reduce((subSum, val) => subSum + val, 0);
-    }, 0);
+    function saveData() {
+      if (hasValidationErrors) {
+        alert('Please fix all validation errors before saving.');
+        return;
+      }
 
-    // Grand total cell
-    const grandTotalCell = document.createElement('div');
-    grandTotalCell.textContent = formatCurrency(grandTotalValue);
-    grandTotalCell.id = `grandtotal-${employee.id}`;
-    grandTotalRow.appendChild(grandTotalCell);
+      // Find current iteration and update its employee data
+      const iterationIndex = budgetData.iterations.findIndex(iter => iter.iterationId === currentIteration);
+      if (iterationIndex === -1) {
+        alert('Cannot find the current iteration to save.');
+        return;
+      }
+      // Update the employee data in the budget data structure
+      budgetData.iterations[iterationIndex].employees = employeeData;
 
-    return grandTotalRow;
-}
+      // In a real application, this would post data to an API endpoint
+      const dataToSave = {
+        iterationId: currentIteration,
+        timestamp: new Date().toISOString(),
+        employees: employeeData
+      };
 
-      function saveData() {
-        if (hasValidationErrors) {
-          alert('Please fix all validation errors before saving.');
-          return;
+      // Simulate API call
+      console.log('Saving data:', dataToSave);
+      alert(`Data for iteration ${currentIteration} saved successfully.`);
+    }
+
+    // Helper functions
+    function findEmployee(id) {
+      return employeeData.find(employee => employee.id === id);
+    }
+
+    function generateMonthlyValues(salary, percent) {
+      const totalAmount = salary * percent / 100;
+      const baseMonthlyAmount = totalAmount / 12;
+
+      // Generate 12 months of rounded values
+      const roundedValues = Array(11).fill(0).map(() => Math.round(baseMonthlyAmount));
+
+      // Calculate the sum of the first 11 months
+      const sumFirst11 = roundedValues.reduce((sum, val) => sum + val, 0);
+
+      // The last month adjusts to make the total exactly match the expected amount
+      roundedValues.push(totalAmount - sumFirst11);
+
+      return roundedValues;
+    }
+
+    function formatCurrency(amount) {
+      return '$' + new Intl.NumberFormat().format(amount);
+    }
+
+
+    function renderEmployees() {
+      const container = document.getElementById('employee-containers');
+      container.innerHTML = '';
+      // Filter employees by home department
+      const filteredEmployees = employeeData.filter(employee =>
+        employee.homeDepartment === currentDepartment
+      );
+
+      if (filteredEmployees.length === 0) {
+        container.innerHTML = '<div class="loading">No employees found for the selected department.</div>';
+        return;
+      }
+
+      filteredEmployees.forEach(employee => {
+        container.appendChild(createEmployeeBox(employee));
+      });
+    }
+
+    function createEmployeeBox(employee) {
+      const box = document.createElement('div');
+      box.className = 'employee-box';
+      box.dataset.employeeId = employee.id;
+
+      // Employee header section
+      //const header = document.createElement('div');
+      //header.className = 'employee-header';
+
+      //const title = document.createElement('h3');
+      //title.textContent = employee.name;
+      //header.appendChild(title);
+
+
+
+      //box.appendChild(header);
+
+      // Employee info section
+      const info = document.createElement('div');
+      info.className = 'employee-info';
+
+      // Name field
+      const nameGroup = document.createElement('div');
+      nameGroup.className = 'field-group';
+      const nameLabel = document.createElement('label');
+      nameLabel.textContent = 'Employee Name';
+      const nameInput = document.createElement('input');
+      nameInput.type = 'text';
+      nameInput.value = employee.name;
+      nameInput.disabled = employee.isExisting;
+      nameInput.addEventListener('change', e => updateEmployeeField(employee.id, 'name', e.target.value));
+      nameGroup.appendChild(nameLabel);
+      nameGroup.appendChild(nameInput);
+      info.appendChild(nameGroup);
+
+      // Job Title field
+      const titleGroup = document.createElement('div');
+      titleGroup.className = 'field-group';
+      const titleLabel = document.createElement('label');
+      titleLabel.textContent = 'Job Title';
+      const titleInput = document.createElement('input');
+      titleInput.type = 'text';
+      titleInput.value = employee.jobTitle;
+      titleInput.addEventListener('change', e => updateEmployeeField(employee.id, 'jobTitle', e.target.value));
+      titleGroup.appendChild(titleLabel);
+      titleGroup.appendChild(titleInput);
+      info.appendChild(titleGroup);
+
+      // Salary field
+      const salaryGroup = document.createElement('div');
+      salaryGroup.className = 'field-group';
+      const salaryLabel = document.createElement('label');
+      salaryLabel.textContent = 'Annual Salary';
+      const salaryInput = document.createElement('input');
+      salaryInput.type = 'text';
+      salaryInput.value = formatCurrency(employee.salary);
+      salaryInput.addEventListener('change', e => {
+        // Get the raw input value, remove non-numeric characters (except dots)
+        let rawValue = e.target.value.replace(/[^0-9.]/g, '');
+
+        // Validate if the value is a whole number
+        if (!/^\d+$/.test(rawValue)) {  // Check if the value is a whole number
+          alert("Please enter a valid whole number.");
+          e.target.value = previousValue; // Reset to the previous valid value
+        } else {
+          // If valid, format and update the input
+          e.target.value = formatCurrency(parseInt(rawValue));
+
+          // Remove commas and $ sign before passing to updateSalary
+          let cleanValue = e.target.value.replace(/[^0-9.]/g, ''); // Remove any commas and $ sign
+          updateSalary(employee.id, parseFloat(cleanValue));
+
+          // Update the previous value to the current valid value
+          previousValue = e.target.value; // Save the newly formatted value
         }
+      });
 
-        // Find current iteration and update its employee data
-        const iterationIndex = budgetData.iterations.findIndex(iter => iter.iterationId === currentIteration);
-        if (iterationIndex === -1) {
-          alert('Cannot find the current iteration to save.');
-          return;
-        }
-        // Update the employee data in the budget data structure
-        budgetData.iterations[iterationIndex].employees = employeeData;
+      salaryGroup.appendChild(salaryLabel);
+      salaryGroup.appendChild(salaryInput);
+      info.appendChild(salaryGroup);
 
-        // In a real application, this would post data to an API endpoint
-        const dataToSave = {
-          iterationId: currentIteration,
-          timestamp: new Date().toISOString(),
-          employees: employeeData
-        };
-
-        // Simulate API call
-        console.log('Saving data:', dataToSave);
-        alert(`Data for iteration ${currentIteration} saved successfully.`);
+      // Delete button for new employees only
+      if (!employee.isExisting) {
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'danger';
+        deleteBtn.textContent = 'Delete Employee';
+        deleteBtn.addEventListener('click', () => deleteEmployee(employee.id));
+        info.appendChild(deleteBtn);
       }
 
-      // Helper functions
-      function findEmployee(id) {
-        return employeeData.find(employee => employee.id === id);
-      }
+      box.appendChild(info);
 
-      function generateMonthlyValues(salary, percent) {
-        const totalAmount = salary * percent / 100;
-        const baseMonthlyAmount = totalAmount / 12;
+      // Column headers
+      const headers = document.createElement('div');
+      headers.className = 'column-headers';
 
-        // Generate 12 months of rounded values
-        const roundedValues = Array(11).fill(0).map(() => Math.round(baseMonthlyAmount));
+      // Create the button
+      const addLineBtn = document.createElement('button');
+      addLineBtn.textContent = '+';
+      addLineBtn.classList.add('add-line');
+      // Add event listener before appending
+      addLineBtn.addEventListener('click', () => addAllocationLine(employee.id));
 
-        // Calculate the sum of the first 11 months
-        const sumFirst11 = roundedValues.reduce((sum, val) => sum + val, 0);
+      // Append button first
+      headers.appendChild(addLineBtn);
 
-        // The last month adjusts to make the total exactly match the expected amount
-        roundedValues.push(totalAmount - sumFirst11);
+      // Create the headers separately and append them one by one
+      const columnTitles = [
+        'Allocation %', 'Department', '% Core', 'Jul', 'Aug', 'Sep', 'Oct',
+        'Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Total' // Added 'Total'
+      ];
 
-        return roundedValues;
-      }
+      columnTitles.forEach(title => {
+        const div = document.createElement('div');
+        div.textContent = title;
+        headers.appendChild(div);
+      });
 
-      function formatCurrency(amount) {
-        return '$' + new Intl.NumberFormat().format(amount);
-      }
-    });
-  </script>
+      box.appendChild(headers);
+
+      // Allocation lines
+      employee.allocations.forEach(allocation => {
+        box.appendChild(createAllocationLine(employee.id, allocation));
+      });
+
+      box.appendChild(createGrandTotalRow(employee));
+
+      // Add allocation button
+      //const actions = document.createElement('div');
+      //actions.className = 'allocation-actions';
+      //const addLineBtn = document.createElement('button');
+      //addLineBtn.textContent = '+ Add Allocation Line';
+      //addLineBtn.addEventListener('click', () => addAllocationLine(employee.id));
+      //actions.appendChild(addLineBtn);
+      //box.appendChild(actions);
+
+      // Error message container (initially empty)
+      const errorMsg = document.createElement('div');
+      errorMsg.className = 'error-message';
+      errorMsg.id = `error-${employee.id}`;
+      box.appendChild(errorMsg);
+
+      return box;
+    }
+
+  });
+</script>
 </body>
 
 </html>
