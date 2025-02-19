@@ -63,7 +63,7 @@
         {
           "id": 1003,
           "name": "Irving B.",
-          "jobTitle": "System Administrator",
+          "jobTitle": "Permanent Outie",
           "salary": 90000,
           "homeDepartment": "12226",
           "isExisting": true,
@@ -87,7 +87,7 @@
         {
           "id": 1004,
           "name": "Dylan G.",
-          "jobTitle": "UI/UX Designer",
+          "jobTitle": "Waffle Party Planner",
           "salary": 95000,
           "homeDepartment": "12226",
           "isExisting": true,
@@ -111,7 +111,7 @@
         {
           "id": 1005,
           "name": "Seth Milkshake",
-          "jobTitle": "Data Analyst",
+          "jobTitle": "Severed Floor Supervisor",
           "salary": 85000,
           "homeDepartment": "12226",
           "isExisting": true,
