@@ -30,8 +30,8 @@
     {"value": "12226", "label": "12226 - MACRODATA REFINEMENT", "currency": "USD"},
     {"value": "13333", "label": "13333 - MAMMALIANS NURTURABLE", "currency": "USD"},
     {"value": "12250", "label": "12250 - OPTICS & DESIGN", "currency": "USD"},
-    {"value": "12234", "label": "12234 - WELLNESS CENTRE (GBP)", "currency": "EUR"},
-    {"value": "12235", "label": "12235 - SECURITY OFFICE (EUR)", "currency": "GBP"}
+    {"value": "12234", "label": "12234 - WELLNESS CENTRE (EUR)", "currency": "EUR"},
+    {"value": "12235", "label": "12235 - SECURITY OFFICE (GBP)", "currency": "GBP"}
   ],
   "iterations": [
     {

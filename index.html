@@ -598,23 +598,37 @@
 
     // Add a single event listener at the container level
     function setupMonthlyValueListeners() {
-      // Handle employee monthly values
-      const employeeContainer = document.getElementById('employee-containers');
-      employeeContainer.addEventListener('blur', (e) => {
+    // Remove individual event listeners - use event delegation instead
+    const expenseContainer = document.getElementById('flexible-expenses');
+    expenseContainer.addEventListener('blur', (e) => {
         if (e.target.classList.contains('monthly-input')) {
-          handleEmployeeMonthlyValueChange(e);
-        }
-      }, true);
+            const input = e.target;
+            const line = input.closest('.allocation-line');
+            const monthIndex = parseInt(input.dataset.monthIndex);
+            const accountIndex = parseInt(line.dataset.accountIndex);
 
-      // Handle flexible expense monthly values
-      const expenseContainer = document.getElementById('flexible-expenses');
-      expenseContainer.addEventListener('blur', (e) => {
-        if (e.target.classList.contains('monthly-input')) {
-          handleExpenseMonthlyValueChange(e);
-        }
-      }, true);
-    }
+            handleMonthlyValue(input, input.dataset.originalValue || 0, currentCurrency, (newValue) => {
+                const account = expense_accounts[accountIndex];
+                let expenseData = flexibleExpensesData.find(exp =>
+                    exp.account === account.id && exp.department === currentDepartment
+                );
 
+                if (!expenseData) {
+                    expenseData = {
+                        account: account.id,
+                        department: currentDepartment,
+                        monthlyValues: Array(12).fill(0)
+                    };
+                    flexibleExpensesData.push(expenseData);
+                }
+
+                expenseData.monthlyValues[monthIndex] = newValue;
+                updateLineTotal(expenseData, line.querySelector('.total-value'));
+                updateTotals();
+            });
+        }
+    }, true);
+}
 
     async function fetchBudgetData() {
       try {
@@ -787,75 +801,54 @@
       });
     }
 
-
     function handleEmployeeMonthlyValueChange(event) {
-      const input = event.target;
-      const line = input.closest('.allocation-line');
-      const monthIndex = parseInt(input.dataset.monthIndex);
-      const employeeId = parseInt(line.closest('.employee-box').dataset.employeeId);
-      const allocationId = parseInt(line.dataset.allocationId);
-      const originalValue = parseInt(input.dataset.originalValue);
+    const input = event.target;
+    const line = input.closest('.allocation-line');
+    const monthIndex = parseInt(input.dataset.monthIndex);
+    const employeeId = parseInt(line.closest('.employee-box').dataset.employeeId);
+    const allocationId = parseInt(line.dataset.allocationId);
+    const originalValue = parseInt(input.dataset.originalValue);
 
-      let rawValue = input.value.replace(/[^0-9.]/g, '');
-
-      if (!/^\d+$/.test(rawValue)) {
-        alert("Please enter a valid whole number.");
-        input.value = formatCurrency(originalValue, currentCurrency);
-        return;
-      }
-
-      const newValue = parseInt(rawValue);
-      input.value = formatCurrency(newValue, currentCurrency);
-      input.dataset.originalValue = newValue;
-
-      // Update data model
-      const employee = findEmployee(employeeId);
-      if (employee) {
-        const allocation = employee.allocations.find(a => a.id === allocationId);
-        if (allocation) {
-          allocation.monthlyValues[monthIndex] = newValue;
-          validateEmployee(employee);
-          updateTotals();
+    handleMonthlyValue(input, originalValue, currentCurrency, (newValue) => {
+        const employee = findEmployee(employeeId);
+        if (employee) {
+            const allocation = employee.allocations.find(a => a.id === allocationId);
+            if (allocation) {
+                allocation.monthlyValues[monthIndex] = newValue;
+                input.dataset.originalValue = newValue;
+                validateEmployee(employee);
+                updateTotals();
+            }
         }
-      }
-    }
+    });
+}
 
-    function handleExpenseMonthlyValueChange(event) {
-      const input = event.target;
-      const line = input.closest('.allocation-line');
-      const monthIndex = parseInt(input.dataset.monthIndex);
-      const accountIndex = parseInt(line.dataset.accountIndex);
+function handleExpenseMonthlyValueChange(event) {
+    const input = event.target;
+    const line = input.closest('.allocation-line');
+    const monthIndex = parseInt(input.dataset.monthIndex);
+    const accountIndex = parseInt(line.dataset.accountIndex);
 
-      let rawValue = input.value.replace(/[^0-9.]/g, '');
+    handleMonthlyValue(input, 0, currentCurrency, (newValue) => {
+        const account = expense_accounts[accountIndex];
+        let expenseData = flexibleExpensesData.find(exp =>
+            exp.account === account.id && exp.department === currentDepartment
+        );
 
-      if (!/^\d+$/.test(rawValue)) {
-        alert("Please enter a valid whole number.");
-        input.value = formatCurrency(0, currentCurrency);
-        return;
-      }
-
-      const newValue = parseInt(rawValue);
-      input.value = formatCurrency(newValue, currentCurrency);
-
-      // Update the flexibleExpensesData array
-      const account = expense_accounts[accountIndex];
-      let expenseData = flexibleExpensesData.find(exp =>
-        exp.account === account.id && exp.department === currentDepartment
-      );
-
-      if (expenseData) {
-        expenseData.monthlyValues[monthIndex] = newValue;
-      } else {
-        expenseData = {
-          account: account.id,
-          department: currentDepartment,
-          monthlyValues: Array(12).fill(0)
-        };
-        expenseData.monthlyValues[monthIndex] = newValue;
-        flexibleExpensesData.push(expenseData);
-      }
-      updateTotals();
-    }
+        if (expenseData) {
+            expenseData.monthlyValues[monthIndex] = newValue;
+        } else {
+            expenseData = {
+                account: account.id,
+                department: currentDepartment,
+                monthlyValues: Array(12).fill(0)
+            };
+            expenseData.monthlyValues[monthIndex] = newValue;
+            flexibleExpensesData.push(expenseData);
+        }
+        updateTotals();
+    });
+}
 
     function renderEmployees() {
       const container = document.getElementById('employee-containers');
@@ -1010,17 +1003,11 @@ function createAccountLine(account, expenseData, index) {
     totalAllocInput.className = 'total-alloc-input';
     totalAllocInput.value = formatCurrency(expenseData.totalAllocation || 0, currentCurrency);
     totalAllocInput.addEventListener('blur', e => {
-        let rawValue = e.target.value.replace(/[^0-9.-]+/g, '');
-        if (!/^\d+$/.test(rawValue)) {
-            alert("Please enter a valid whole number.");
-            e.target.value = formatCurrency(expenseData.totalAllocation || 0, currentCurrency);
-        } else {
-            const newValue = parseInt(rawValue);
-            expenseData.totalAllocation = newValue;
-            e.target.value = formatCurrency(newValue, currentCurrency);
-            distributeAllocation(expenseData, line);
-        }
+    handleMonthlyValue(e.target, expenseData.totalAllocation || 0, currentCurrency, (newValue) => {
+        expenseData.totalAllocation = newValue;
+        distributeAllocation(expenseData, line);
     });
+});
     line.appendChild(totalAllocInput);
 
    // Allocation Type Dropdown
@@ -1050,16 +1037,16 @@ function createAccountLine(account, expenseData, index) {
     });
     line.appendChild(allocTypeSelect);
 
-    // Monthly inputs (modified)
     for (let i = 0; i < 12; i++) {
         const monthInput = document.createElement('input');
         monthInput.type = 'text';
         monthInput.className = 'monthly-input';
         monthInput.value = formatCurrency(expenseData.monthlyValues[i] || 0, currentCurrency);
         monthInput.dataset.monthIndex = i;
-        monthInput.readOnly = true; // Make read-only since values are calculated
+        monthInput.dataset.originalValue = expenseData.monthlyValues[i] || 0;
         line.appendChild(monthInput);
     }
+
 
     // Total cell (existing code)
     const totalCell = document.createElement('div');
@@ -1153,6 +1140,24 @@ function distributeAllocation(expenseData, line) {
 }
 
 
+function handleMonthlyValue(input, currentValue, currency, onSuccess) {
+    let rawValue = input.value.replace(/[^0-9.-]+/g, '');
+    
+    if (!/^\d+$/.test(rawValue)) {
+        alert("Please enter a valid whole number.");
+        input.value = formatCurrency(currentValue, currency);
+        return false;
+    }
+    
+    const newValue = parseInt(rawValue);
+    input.value = formatCurrency(newValue, currency);
+    
+    if (onSuccess) {
+        onSuccess(newValue);
+    }
+    
+    return newValue;
+}
 function updateLineTotal(expenseData, totalCell) {
     const total = expenseData.monthlyValues.reduce((sum, val) => sum + val, 0);
     totalCell.textContent = formatCurrency(total, currentCurrency);
