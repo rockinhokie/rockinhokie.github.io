@@ -13,20 +13,43 @@
       {"from": "USD", "to": "EUR", "rate": 0.91},
       {"from": "EUR", "to": "GBP", "rate": 0.88},
       {"from": "GBP", "to": "EUR", "rate": 1.14}
+    ],
+    "expense_accounts": [
+{"id": "4", "Name": "Contractors", "Type": "Expense", "Category": "Operating Expenses", "Subcategory": "Contractors"},
+{"id": "5", "Name": "Consultants", "Type": "Expense", "Category": "Operating Expenses", "Subcategory": "Consultants"},
+{"id": "6", "Name": "Travel", "Type": "Expense", "Category": "Operating Expenses", "Subcategory": "Travel"},
+{"id": "7", "Name": "Meals & Entertainment", "Type": "Expense", "Category": "Operating Expenses", "Subcategory": "Meals & Entertainment"},
+{"id": "8", "Name": "Office Supplies", "Type": "Expense", "Category": "Operating Expenses", "Subcategory": "Office Supplies"},
+{"id": "9", "Name": "Utilities", "Type": "Expense", "Category": "Operating Expenses", "Subcategory": "Utilities"},
+{"id": "10", "Name": "Rent", "Type": "Expense", "Category": "Operating Expenses", "Subcategory": "Rent"},
+{"id": "11", "Name": "Insurance", "Type": "Expense", "Category": "Operating Expenses", "Subcategory": "Insurance"},
+{"id": "12", "Name": "Depreciation", "Type": "Expense", "Category": "Operating Expenses", "Subcategory": "Depreciation"}
     ]
   },
   "departments": [
-    {"value": "12226", "label": "12226 - IT - BUSINESS APPS", "currency": "USD"},
-    {"value": "13333", "label": "13333 - INTERNATIONAL FINANCE", "currency": "USD"},
-    {"value": "12250", "label": "12250 - FINANCE SYSTEMS", "currency": "USD"},
-    {"value": "12234", "label": "12234 - FINANCIAL PLANNING AND ANALYSIS (EUR)", "currency": "EUR"},
-    {"value": "12235", "label": "12235 - GLOBAL TREASURY & RISK MGT (GBP)", "currency": "GBP"}
+    {"value": "12226", "label": "12226 - MACRODATA REFINEMENT", "currency": "USD"},
+    {"value": "13333", "label": "13333 - MAMMALIANS NURTURABLE", "currency": "USD"},
+    {"value": "12250", "label": "12250 - OPTICS & DESIGN", "currency": "USD"},
+    {"value": "12234", "label": "12234 - WELLNESS CENTRE (GBP)", "currency": "EUR"},
+    {"value": "12235", "label": "12235 - SECURITY OFFICE (EUR)", "currency": "GBP"}
   ],
   "iterations": [
     {
       "iterationId": "FY25",
       "status": "approved",
       "approvalDate": "2024-06-01T00:00:00Z",
+      "flexibleExpenses": [
+        {
+          "account": "6",
+          "department": "12226",
+          "monthlyValues": [100, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        },
+        {
+          "account": "7",
+          "department": "12226",
+          "monthlyValues": [0, 100, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        }
+      ],
       "employees": [
         {
           "id": 1001,
@@ -36,6 +59,7 @@
           "currency": "GBP",
           "homeDepartment": "12226",
           "isExisting": true,
+          "justification": "Cold Harbor",
           "allocations": [
             {
               "id": 10001,
