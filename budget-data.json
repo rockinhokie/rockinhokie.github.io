@@ -15,15 +15,15 @@
       {"from": "GBP", "to": "EUR", "rate": 1.14}
     ],
     "expense_accounts": [
-{"id": "4", "Name": "Contractors", "Type": "Expense", "Category": "Operating Expenses", "Subcategory": "Contractors"},
-{"id": "5", "Name": "Consultants", "Type": "Expense", "Category": "Operating Expenses", "Subcategory": "Consultants"},
-{"id": "6", "Name": "Travel", "Type": "Expense", "Category": "Operating Expenses", "Subcategory": "Travel"},
-{"id": "7", "Name": "Meals & Entertainment", "Type": "Expense", "Category": "Operating Expenses", "Subcategory": "Meals & Entertainment"},
-{"id": "8", "Name": "Office Supplies", "Type": "Expense", "Category": "Operating Expenses", "Subcategory": "Office Supplies"},
-{"id": "9", "Name": "Utilities", "Type": "Expense", "Category": "Operating Expenses", "Subcategory": "Utilities"},
-{"id": "10", "Name": "Rent", "Type": "Expense", "Category": "Operating Expenses", "Subcategory": "Rent"},
-{"id": "11", "Name": "Insurance", "Type": "Expense", "Category": "Operating Expenses", "Subcategory": "Insurance"},
-{"id": "12", "Name": "Depreciation", "Type": "Expense", "Category": "Operating Expenses", "Subcategory": "Depreciation"}
+{"id": "4", "Name": "Severance Chips", "Type": "Expense", "Category": "Operating Expenses", "Subcategory": "Contractors"},
+{"id": "5", "Name": "ORTBO Travel", "Type": "Expense", "Category": "Operating Expenses", "Subcategory": "Consultants"},
+{"id": "6", "Name": "MDR Workstations", "Type": "Expense", "Category": "Operating Expenses", "Subcategory": "Travel"},
+{"id": "7", "Name": "Goats", "Type": "Expense", "Category": "Operating Expenses", "Subcategory": "Meals & Entertainment"},
+{"id": "8", "Name": "Paintings of Kier", "Type": "Expense", "Category": "Operating Expenses", "Subcategory": "Office Supplies"},
+{"id": "9", "Name": "Waffle Parties", "Type": "Expense", "Category": "Operating Expenses", "Subcategory": "Utilities"},
+{"id": "10", "Name": "Melon Bars", "Type": "Expense", "Category": "Operating Expenses", "Subcategory": "Rent"},
+{"id": "11", "Name": "Finger Traps", "Type": "Expense", "Category": "Operating Expenses", "Subcategory": "Insurance"},
+{"id": "12", "Name": "Office Supplies", "Type": "Expense", "Category": "Operating Expenses", "Subcategory": "Depreciation"}
     ]
   },
   "departments": [

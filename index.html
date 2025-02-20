@@ -439,7 +439,7 @@
 
     #flexible-expenses .column-headers {
       display: grid;
-      grid-template-columns: minmax(200px, 1fr) 100px 150px repeat(12, 75px) 100px;
+      grid-template-columns: minmax(200px, 1fr) 50px 100px 150px repeat(12, 75px) 100px;
       /* Updated grid-template-columns */
       gap: 5px;
       margin-bottom: 10px;
@@ -453,7 +453,7 @@
 
     #flexible-expenses .allocation-line {
       display: grid;
-      grid-template-columns: minmax(200px, 1fr) 100px 150px repeat(12, 75px) 100px;
+      grid-template-columns: minmax(200px, 1fr) 50px 100px 150px repeat(12, 75px) 100px;
       /* Updated grid-template-columns */
       gap: 5px;
       padding: 4px 0;
@@ -598,38 +598,65 @@
 
     // Add a single event listener at the container level
     function setupMonthlyValueListeners() {
-    // Remove individual event listeners - use event delegation instead
+    // Listen for expenses
     const expenseContainer = document.getElementById('flexible-expenses');
-    expenseContainer.addEventListener('blur', (e) => {
-        if (e.target.classList.contains('monthly-input')) {
-            const input = e.target;
-            const line = input.closest('.allocation-line');
-            const monthIndex = parseInt(input.dataset.monthIndex);
-            const accountIndex = parseInt(line.dataset.accountIndex);
+    expenseContainer.addEventListener('blur', handleContainerBlur, true);
 
-            handleMonthlyValue(input, input.dataset.originalValue || 0, currentCurrency, (newValue) => {
-                const account = expense_accounts[accountIndex];
-                let expenseData = flexibleExpensesData.find(exp =>
-                    exp.account === account.id && exp.department === currentDepartment
-                );
-
-                if (!expenseData) {
-                    expenseData = {
-                        account: account.id,
-                        department: currentDepartment,
-                        monthlyValues: Array(12).fill(0)
-                    };
-                    flexibleExpensesData.push(expenseData);
-                }
-
-                expenseData.monthlyValues[monthIndex] = newValue;
-                updateLineTotal(expenseData, line.querySelector('.total-value'));
-                updateTotals();
-            });
-        }
-    }, true);
+    // Listen for employee values
+    const employeeContainer = document.getElementById('employee-containers');
+    employeeContainer.addEventListener('blur', handleContainerBlur, true);
 }
 
+function handleContainerBlur(e) {
+    if (!e.target.classList.contains('monthly-input')) return;
+
+    const input = e.target;
+    const line = input.closest('.allocation-line');
+    const monthIndex = parseInt(input.dataset.monthIndex);
+
+    if (e.currentTarget.id === 'flexible-expenses') {
+        // Handle flexible expense monthly values
+        const accountIndex = parseInt(line.dataset.accountIndex);
+        handleMonthlyValue(input, input.dataset.originalValue || 0, currentCurrency, (newValue) => {
+            const account = expense_accounts[accountIndex];
+            let expenseData = flexibleExpensesData.find(exp =>
+                exp.account === account.id && 
+                exp.department === currentDepartment
+            );
+
+            if (!expenseData) {
+                expenseData = {
+                    account: account.id,
+                    department: currentDepartment,
+                    monthlyValues: Array(12).fill(0)
+                };
+                flexibleExpensesData.push(expenseData);
+            }
+
+            expenseData.monthlyValues[monthIndex] = newValue;
+            input.dataset.originalValue = newValue;
+            updateLineTotal(expenseData, line.querySelector('.total-value'));
+            updateTotals();
+        });
+    } else {
+        // Handle employee monthly values
+        const employeeId = parseInt(line.closest('.employee-box').dataset.employeeId);
+        const allocationId = parseInt(line.dataset.allocationId);
+
+        handleMonthlyValue(input, input.dataset.originalValue || 0, currentCurrency, (newValue) => {
+            const employee = findEmployee(employeeId);
+            if (employee) {
+                const allocation = employee.allocations.find(a => a.id === allocationId);
+                if (allocation) {
+                    allocation.monthlyValues[monthIndex] = newValue;
+                    input.dataset.originalValue = newValue;
+                    validateEmployee(employee);
+                    updateTotals();
+                }
+            }
+        });
+    }
+}
     async function fetchBudgetData() {
       try {
         // In a real application, this would be a fetch call to an API endpoint
@@ -883,6 +910,7 @@ function handleExpenseMonthlyValueChange(event) {
       
       const columnTitles = [
         'Account Name', 
+        'Investment Request?',
         'Total Alloc', 
         'Alloc Type',
         'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 
@@ -950,7 +978,7 @@ function handleExpenseMonthlyValueChange(event) {
   bottomSection.className = 'newexpense-bottom';
   
   const addAccountBtn2 = document.createElement('button');
-  addAccountBtn2.textContent = '+ Add Expense Category';
+  addAccountBtn2.textContent = '+ Add Investments or Other Expenses';
   addAccountBtn2.type = 'button';
   addAccountBtn2.addEventListener('click', addNewAccount);
   
@@ -959,43 +987,96 @@ function handleExpenseMonthlyValueChange(event) {
     }
     
     function addNewAccount() {
-  const newAccount = {
-    id: "custom",
-    Name: "",
-    Type: "Expense",
-    Category: "Operating Expenses",
-    Subcategory: "Other"
-  };
+    const newAccount = {
+        id: "custom",
+        Name: "",
+        CustomName: "Enter Investment/Expense Description", // This will be updated when user types
+        Type: "Expense",
+        Category: "Operating Expenses",
+        Subcategory: "Other"
+    };
 
-  expense_accounts.push(newAccount);
-  
-  // Create corresponding expense data
-  const newExpenseData = {
-    account: newAccount.id,
-    department: currentDepartment,
-    monthlyValues: Array(12).fill(0)
-  };
-  flexibleExpensesData.push(newExpenseData);
+    expense_accounts.push(newAccount);
+    
+    // Create corresponding expense data with CustomName
+    const newExpenseData = {
+        account: newAccount.id,
+        department: currentDepartment,
+        monthlyValues: Array(12).fill(0),
+        CustomName: newAccount.CustomName,  // Add CustomName to expense data
+        investmentRequest: false  // Add investment request field
+    };
+    flexibleExpensesData.push(newExpenseData);
 
-  renderExpenses();
+    renderExpenses();
 }
 
+function findExpenseData(accountId, department) {
+    return flexibleExpensesData.find(exp => 
+        exp.account === accountId && 
+        exp.department === department
+    );
+}
 
 function createAccountLine(account, expenseData, index) {
     const line = document.createElement('div');
     line.className = 'allocation-line';
     line.dataset.accountIndex = index;
 
-    // Account Name (existing code)
+    // Account Name handling
     if (account.id === "custom") {
-        const nameInput = document.createElement('input');
-        // ... existing name input code ...
-        line.appendChild(nameInput);
-    } else {
+    const nameInput = document.createElement('input');
+    nameInput.type = 'text';
+    nameInput.className = 'account-name-input';
+    nameInput.value = expenseData.CustomName || account.CustomName || '';
+    nameInput.placeholder = 'Enter Investment/Expense Description';
+    nameInput.addEventListener('blur', e => {
+        const newName = e.target.value;
+        account.CustomName = newName;
+        account.Name = newName;
+        expenseData.CustomName = newName; // Save to expense data
+        
+        // Update the corresponding flexible expense data
+        const expenseIndex = flexibleExpensesData.findIndex(exp => 
+            exp.account === account.id && 
+            exp.department === currentDepartment
+        );
+        if (expenseIndex !== -1) {
+            flexibleExpensesData[expenseIndex].CustomName = newName;
+        }
+    });
+    line.appendChild(nameInput);
+}else {
         const nameDiv = document.createElement('div');
         nameDiv.textContent = account.Name;
         line.appendChild(nameDiv);
     }
+    
+    if (account.id === "custom") {
+    const investmentCell = document.createElement('div');
+    const investmentCheckbox = document.createElement('input');
+    investmentCheckbox.type = 'checkbox';
+    investmentCheckbox.checked = expenseData.investmentRequest || false;
+    investmentCheckbox.addEventListener('change', e => {
+        // Update the expenseData directly
+        expenseData.investmentRequest = e.target.checked;
+        
+        // Find and update in flexibleExpensesData array
+        const expenseIndex = flexibleExpensesData.findIndex(exp => 
+            exp.account === account.id && 
+            exp.department === currentDepartment
+        );
+        if (expenseIndex !== -1) {
+            flexibleExpensesData[expenseIndex].investmentRequest = e.target.checked;
+        }
+    });
+    investmentCell.appendChild(investmentCheckbox);
+    line.appendChild(investmentCell);
+} else {
+    // Add empty cell for non-custom expenses
+    const emptyCell = document.createElement('div');
+    line.appendChild(emptyCell);
+}
 
     // Total Allocation Input
     const totalAllocInput = document.createElement('input');
@@ -1841,42 +1922,34 @@ function updateLineTotal(expenseData, totalCell) {
     }
 
     function generateMonthlyValues(newSalary, salaryOld, salaryChangeMonth, percent, currency) {
-
-      if (currentCurrency != currency)  //if employee currency is not the working corrency, convert salary to working currency
-      {
+    if (currentCurrency != currency) {
         const fx_rate = fx_rates.find(rate => rate.from === currency && rate.to === currentCurrency);
         newSalary = newSalary * fx_rate.rate;
         salaryOld = salaryOld * fx_rate.rate;
-      }
-
-      const totalAmountold = salaryOld * (percent / 100);
-      const totalAmountNew = newSalary * (percent / 100);
-      const baseMonthlyAmountOld = totalAmountold / 12;
-      const baseMonthlyAmountNew = totalAmountNew / 12;
-      const roundedValues = Array(11);
-      sumNewValues = 0;
-
-      //console.log(salaryOld);
-      //console.log (baseMonthlyAmountOld);
-      //console.log(12-(12-salaryChangeMonth));
-      //console.log(newSalary);
-      //console.log (baseMonthlyAmountNew);
-      //console.log((12-salaryChangeMonth));      
-      // Generate 11 months of rounded values
-      for (let i = 0; i < 11; i++) {
-        if (i < salaryChangeMonth) {
-          roundedValues.push(Math.round(baseMonthlyAmountOld));
-        } else {
-          // console.log ('pushnew:'+Math.round(baseMonthlyAmountNew))
-          roundedValues.push(Math.round(baseMonthlyAmountNew));
-          sumNewValues += Math.round(baseMonthlyAmountNew);
-        }
-      }
-
-      // The last month adjusts to make the total exactly match the expected amount
-      roundedValues.push((Math.round(baseMonthlyAmountNew * (12 - salaryChangeMonth)) - sumNewValues));
-      return roundedValues;
     }
+
+    const totalAmountold = salaryOld * (percent / 100);
+    const totalAmountNew = newSalary * (percent / 100);
+    const baseMonthlyAmountOld = totalAmountold / 12;
+    const baseMonthlyAmountNew = totalAmountNew / 12;
+    const roundedValues = []; // Initialize empty array
+    let sumNewValues = 0;
+
+    // Use standard array assignment
+    for (let i = 0; i < 11; i++) {
+        if (i < salaryChangeMonth) {
+            roundedValues[i] = Math.round(baseMonthlyAmountOld);
+        } else {
+            roundedValues[i] = Math.round(baseMonthlyAmountNew);
+            sumNewValues += Math.round(baseMonthlyAmountNew);
+        }
+    }
+
+    // Add the final month
+    roundedValues[11] = Math.round(baseMonthlyAmountNew * (12 - salaryChangeMonth)) - sumNewValues;
+
+    return roundedValues;
+}
 
     function formatCurrency(amount, currency) {
       const numberFormat = new Intl.NumberFormat();
