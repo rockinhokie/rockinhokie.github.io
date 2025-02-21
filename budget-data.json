@@ -14,6 +14,13 @@
       {"from": "EUR", "to": "GBP", "rate": 0.88},
       {"from": "GBP", "to": "EUR", "rate": 1.14}
     ],
+    "fringe_rates": [
+      {"domicile": "US", "rate": 0.41},
+      {"domicile": "UK", "rate": 0.2},
+      {"domicile": "EU", "rate": 0.35},
+      {"domicile": "Regional", "rate": 0.3},
+      {"domicile": "TBD", "rate": 0.41}
+    ],
     "expense_accounts": [
 {"id": "4", "Name": "Severance Chips", "Type": "Expense", "Category": "Operating Expenses", "Subcategory": "Contractors"},
 {"id": "5", "Name": "ORTBO Travel", "Type": "Expense", "Category": "Operating Expenses", "Subcategory": "Consultants"},
@@ -43,13 +50,17 @@
           "account": "6",
           "department": "12226",
           "monthlyValues": [100, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-          "actualMonthlyValues": [1000, 0]
+          "actualMonthlyValues": [1000, 0],
+           "justification": "Cold Harbor"
         },
         {
           "account": "7",
           "department": "12226",
           "monthlyValues": [0, 100, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-          "actualMonthlyValues": [1001, 0]
+          "actualMonthlyValues": [1001, 0],
+          "totalAllocation": 10000,
+          "allocationType": "q3",
+          "justification": "Cold Harbor"
         }
       ],
       "employees": [
@@ -61,6 +72,7 @@
           "currency": "GBP",
           "homeDepartment": "12226",
           "isExisting": true,
+          "domicile": "US",
           "justification": "Cold Harbor",
           "allocations": [
             {

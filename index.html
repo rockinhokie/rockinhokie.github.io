@@ -188,7 +188,8 @@
       border-color: var(--danger-color);
       background-color: var(--danger-bg);
     }
-/*
+
+    /*
     .employee-header {
       display: flex;
       justify-content: space-between;
@@ -198,7 +199,8 @@
 */
     .employee-info {
       display: grid;
-      grid-template-columns: 1fr 1fr 150px 150px 150px 100px 150px;
+      grid-template-columns: 1fr 1fr 125px 150px 150px 100px 150px 150px;
+      /* Added one more column */
       gap: 15px;
       margin-bottom: 15px;
     }
@@ -285,6 +287,7 @@
       color: #999;
     }
 
+
     .allocation-line button.delete-line:hover {
       color: var(--danger-color);
     }
@@ -358,7 +361,7 @@
       background-color: var(--secondary-color);
     }
 
-/*
+    /*
     .allocation-actions {
       margin-top: 15px;
       display: flex;
@@ -395,7 +398,23 @@
       font-size: 18px;
       color: var(--primary-color);
     }
+    .grand-final-total-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    border-top: 2px solid var(--primary-color);
+    padding-top: 10px;
+}
 
+.grand-final-total-row span:first-child {
+    font-weight: bold;
+}
+
+.grand-final-total-row span:last-child {
+    font-size: 18px;
+    color: var(--primary-color);
+    font-weight: bold;
+}
     .loading {
       display: flex;
       justify-content: center;
@@ -428,25 +447,25 @@
     }
 
     #flexible-expenses {
-  display: flex;
-  flex-direction: column;
-}
+      display: flex;
+      flex-direction: column;
+    }
 
-.newexpense-bottom {
-  text-align: right;
-  margin-top: 20px;
-}
+    .newexpense-bottom {
+      text-align: right;
+      margin-top: 20px;
+    }
 
-#flexible-expenses .column-headers,
-#flexible-expenses .allocation-line {
-    grid-template-columns: minmax(200px, 1fr) 30px 75px 100px repeat(12, 70px) 75px 75px;
-}
+    #flexible-expenses .column-headers,
+    #flexible-expenses .allocation-line {
+      grid-template-columns: 10px minmax(200px, 1fr) 30px 75px 200px 100px repeat(12, 70px) 75px 75px;
+    }
 
     /* Add class for when spend-to-date column is present */
-#flexible-expenses .column-headers.has-actuals,
-#flexible-expenses .allocation-line.has-actuals {
-    grid-template-columns: minmax(200px, 1fr) 30px 75px 100px repeat(var(--actual-months, 12), 75px) 75px repeat(var(--remaining-months, 0), 70px) 75px;
-}
+    #flexible-expenses .column-headers.has-actuals,
+    #flexible-expenses .allocation-line.has-actuals {
+      grid-template-columns: 10px minmax(200px, 1fr) 30px 75px 200px 100px repeat(var(--actual-months, 12), 75px) 75px repeat(var(--remaining-months, 0), 70px) 75px;
+    }
 
     #flexible-expenses .column-headers div {
       padding: 8px 0;
@@ -461,8 +480,6 @@
     #flexible-expenses .allocation-line:nth-child(odd) {
       background-color: var(--secondary-color);
     }
-
-    
   </style>
 </head>
 
@@ -512,11 +529,15 @@
           <span id="total-salaries">$0.00</span>
         </div>
         <div class="grand-total-row">
-          <span>Total Allocated to Home Department:</span>
+          <span>Total Salaries + Fringe:</span>
+          <span id="total-salaries-with-fringe">$0.00</span>
+      </div>
+        <div class="grand-total-row">
+          <span>Total Salaries + Fringe Allocated to Home Department:</span>
           <span id="total-allocated">$0.00</span>
         </div>
         <div class="grand-total-row">
-          <span>Total Allocated to Home Department / Core Fund:</span>
+          <span>Total Salaries + Fringe Allocated to Home Department / Core Fund:</span>
           <span id="total-allocated-core">$0.00</span>
         </div>
       </div>
@@ -529,7 +550,22 @@
     <div id="flexible-container" class="tab-content">
       <!-- New flexible expenses content will go here -->
       <div id="flexible-expenses"></div>
+      <div class="grand-total">
+      <div class="grand-total-row">
+        <span>Total Expenses:</span>
+        <span id="total-flexible-expenses">0.00</span>
+      </div>
+      <div class="grand-total-row">
+        <span>Total Salaries + Fringe Allocated to Home Department:</span>
+        <span id="total-allocated2">$0.00</span>
+      </div>
+      <div class="grand-final-total-row">
+        <span>Grand Total:</span>
+        <span id="grand-total">$0.00</span>
+      </div>
     </div>
+  </div>
+
     <div class="save-section">
       <div>
         <div class="save-info">All changes will be saved to the current iteration: <span
@@ -584,83 +620,83 @@
 
 
     function setupMonthlyValueListeners() {
-    // Listen for expenses
-    const expenseContainer = document.getElementById('flexible-expenses');
-    expenseContainer.addEventListener('blur', handleContainerBlur, true);
+      // Listen for expenses
+      const expenseContainer = document.getElementById('flexible-expenses');
+      expenseContainer.addEventListener('blur', handleContainerBlur, true);
 
-    // Listen for employee values
-    const employeeContainer = document.getElementById('employee-containers');
-    employeeContainer.addEventListener('blur', handleContainerBlur, true);
-}
+      // Listen for employee values
+      const employeeContainer = document.getElementById('employee-containers');
+      employeeContainer.addEventListener('blur', handleContainerBlur, true);
+    }
 
-function handleContainerBlur(e) {
-    if (!e.target.classList.contains('monthly-input')) return;
+    function handleContainerBlur(e) {
+      if (!e.target.classList.contains('monthly-input')) return;
 
-    const input = e.target;
-    const line = input.closest('.allocation-line');
-    const monthIndex = parseInt(input.dataset.monthIndex);
+      const input = e.target;
+      const line = input.closest('.allocation-line');
+      const monthIndex = parseInt(input.dataset.monthIndex);
 
-    if (e.currentTarget.id === 'flexible-expenses') {
+      if (e.currentTarget.id === 'flexible-expenses') {
         // Handle flexible expense monthly values
         const accountIndex = parseInt(line.dataset.accountIndex);
         handleMonthlyValue(input, input.dataset.originalValue || 0, currentCurrency, (newValue) => {
-            const account = expense_accounts[accountIndex];
-            let expenseData = flexibleExpensesData.find(exp =>
-                exp.account === account.id && 
-                exp.department === currentDepartment
-            );
+          const account = expense_accounts[accountIndex];
+          let expenseData = flexibleExpensesData.find(exp =>
+            exp.account === account.id &&
+            exp.department === currentDepartment
+          );
 
-            if (!expenseData) {
-                expenseData = {
-                    account: account.id,
-                    department: currentDepartment,
-                    monthlyValues: Array(12).fill(0)
-                };
-                flexibleExpensesData.push(expenseData);
+          if (!expenseData) {
+            expenseData = {
+              account: account.id,
+              department: currentDepartment,
+              monthlyValues: Array(12).fill(0)
+            };
+            flexibleExpensesData.push(expenseData);
+          }
+
+          // Update the value in the monthlyValues array
+          expenseData.monthlyValues[monthIndex] = newValue;
+          input.dataset.originalValue = newValue;
+
+          // Recalculate spend-to-date total
+          let spendToDateTotal = 0;
+          let lastActualMonth = -1;
+
+          // Find last month with actuals across all accounts
+          flexibleExpensesData.forEach(exp => {
+            if (exp.actualMonthlyValues) {
+              exp.actualMonthlyValues.forEach((value, idx) => {
+                if (value !== null && value !== undefined) {
+                  lastActualMonth = Math.max(lastActualMonth, idx);
+                }
+              });
+            }
+          });
+
+          // Calculate spend to date (sum of all values up to lastActualMonth)
+          if (lastActualMonth >= 0) {
+            for (let i = 0; i <= lastActualMonth; i++) {
+              spendToDateTotal += expenseData.monthlyValues[i] || 0;
             }
 
-            // Update the value in the monthlyValues array
-            expenseData.monthlyValues[monthIndex] = newValue;
-            input.dataset.originalValue = newValue;
-
-            // Recalculate spend-to-date total
-            let spendToDateTotal = 0;
-            let lastActualMonth = -1;
-
-            // Find last month with actuals across all accounts
-            flexibleExpensesData.forEach(exp => {
-                if (exp.actualMonthlyValues) {
-                    exp.actualMonthlyValues.forEach((value, idx) => {
-                        if (value !== null && value !== undefined) {
-                            lastActualMonth = Math.max(lastActualMonth, idx);
-                        }
-                    });
-                }
-            });
-
-            // Calculate spend to date (sum of all values up to lastActualMonth)
-            if (lastActualMonth >= 0) {
-                for (let i = 0; i <= lastActualMonth; i++) {
-                    spendToDateTotal += expenseData.monthlyValues[i] || 0;
-                }
-                
-                // Update spend to date cell
-                const spendToDateCell = line.querySelector('.spend-to-date');
-                if (spendToDateCell) {
-                    spendToDateCell.textContent = formatCurrency(spendToDateTotal, currentCurrency);
-                }
+            // Update spend to date cell
+            const spendToDateCell = line.querySelector('.spend-to-date');
+            if (spendToDateCell) {
+              spendToDateCell.textContent = formatCurrency(spendToDateTotal, currentCurrency);
             }
+          }
 
-            // Update line total
-            const totalCell = line.querySelector('.total-value:last-child');
-            const grandTotal = expenseData.monthlyValues.reduce((sum, val) => sum + (val || 0), 0);
-            if (totalCell) {
-                totalCell.textContent = formatCurrency(grandTotal, currentCurrency);
-            }
+          // Update line total
+          const totalCell = line.querySelector('.total-value:last-child');
+          const grandTotal = expenseData.monthlyValues.reduce((sum, val) => sum + (val || 0), 0);
+          if (totalCell) {
+            totalCell.textContent = formatCurrency(grandTotal, currentCurrency);
+          }
 
-            updateTotals();
+          updateTotals();
         });
-    } else if (e.currentTarget.id === 'employee-containers') {
+      } else if (e.currentTarget.id === 'employee-containers') {
         // Handle employee allocation monthly values
         const allocationId = parseInt(line.dataset.allocationId);
         const employeeId = parseInt(line.closest('.employee-box').dataset.employeeId);
@@ -671,20 +707,20 @@ function handleContainerBlur(e) {
         if (!allocation) return;
 
         handleMonthlyValue(input, input.dataset.originalValue || 0, currentCurrency, (newValue) => {
-            allocation.monthlyValues[monthIndex] = newValue;
-            input.dataset.originalValue = newValue;
+          allocation.monthlyValues[monthIndex] = newValue;
+          input.dataset.originalValue = newValue;
 
-            // Update line total
-            const totalCell = line.querySelector('.total-value:last-child');
-            const totalValue = allocation.monthlyValues.reduce((sum, val) => sum + (val || 0), 0);
-            if (totalCell) {
-                totalCell.textContent = formatCurrency(totalValue, currentCurrency);
-            }
+          // Update line total
+          const totalCell = line.querySelector('.total-value:last-child');
+          const totalValue = allocation.monthlyValues.reduce((sum, val) => sum + (val || 0), 0);
+          if (totalCell) {
+            totalCell.textContent = formatCurrency(totalValue, currentCurrency);
+          }
 
-            updateTotals();
+          updateTotals();
         });
+      }
     }
-}
 
     async function fetchBudgetData() {
       try {
@@ -760,6 +796,7 @@ function handleContainerBlur(e) {
         employee.salaryChangeMonth = 0;
         employee.currency = employee.currency || currentCurrency;
         employee.isExisting = true;
+        employee.domicile = employee.domicile || ''; // Ensure domicile field exists
 
         // If the employee has no allocations, create a default one
         if (!employee.allocations || employee.allocations.length === 0) {
@@ -790,8 +827,9 @@ function handleContainerBlur(e) {
         totalAllocation: expense.totalAllocation,
         allocationType: expense.allocationType,
         CustomName: expense.CustomName,
-        investmentRequest: expense.investmentRequest
-    }));
+        investmentRequest: expense.investmentRequest,
+        justification: expense.justification
+      }));
       currentIteration = iterationId;
     }
 
@@ -890,51 +928,53 @@ function handleContainerBlur(e) {
       const wrapper = document.createElement('div');
       wrapper.className = 'expenses-wrapper';
 
-     // Determine last month with actuals first
-    let lastActualMonth = -1;
-    flexibleExpensesData.forEach(exp => {
+      // Determine last month with actuals first
+      let lastActualMonth = -1;
+      flexibleExpensesData.forEach(exp => {
         if (exp.actualMonthlyValues) {
-            exp.actualMonthlyValues.forEach((value, monthIndex) => {
-                if (value !== null && value !== undefined) {
-                    lastActualMonth = Math.max(lastActualMonth, monthIndex);
-                }
-            });
+          exp.actualMonthlyValues.forEach((value, monthIndex) => {
+            if (value !== null && value !== undefined) {
+              lastActualMonth = Math.max(lastActualMonth, monthIndex);
+            }
+          });
         }
-    });
+      });
 
-    // Create headers array
-    const baseHeaders = [
-        'Account Name', 
+      // Create headers array
+      const baseHeaders = [
+        '', //Delete button
+        'Account Name',
         'Invest Req?',
-        'Total Alloc', 
+        'Total Alloc',
+        'Justification',
         'Alloc Type'
-    ];
+      ];
 
-    const monthHeaders = [
-        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 
+      const monthHeaders = [
+        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
         'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'
-    ];
+      ];
 
-    // Build complete headers array with Spend to Date in correct position
-    let columnTitles = [...baseHeaders];
-    for (let i = 0; i < monthHeaders.length; i++) {
+      // Build complete headers array with Spend to Date in correct position
+      let columnTitles = [...baseHeaders];
+      for (let i = 0; i < monthHeaders.length; i++) {
         columnTitles.push(monthHeaders[i]);
         if (i === lastActualMonth && lastActualMonth >= 0) {
-            columnTitles.push('Spend to Date');
+          columnTitles.push('Spend to Date');
         }
-    }
-    columnTitles.push('Total');
+      }
+      columnTitles.push('Total');
 
-    // Create header elements
-    const headers = document.createElement('div');
-    headers.className = 'column-headers';
-    columnTitles.forEach(title => {
+      // Create header elements
+      const headers = document.createElement('div');
+      headers.className = 'column-headers';
+      columnTitles.forEach(title => {
         const div = document.createElement('div');
         div.textContent = title;
         headers.appendChild(div);
-    });
+      });
 
-    wrapper.appendChild(headers);
+      wrapper.appendChild(headers);
 
       // Add account lines
       expense_accounts.forEach((account, index) => {
@@ -958,417 +998,444 @@ function handleContainerBlur(e) {
 
       ExpContainer.appendChild(wrapper);
 
-     const grandTotal = document.createElement('div');
-  grandTotal.className = 'grand-total';
-  
-  const totalRow = document.createElement('div');
-  totalRow.className = 'grand-total-row';
-  
-  const totalLabel = document.createElement('span');
-  totalLabel.textContent = 'Total Flexible Expenses:';
-  
-  const totalAmount = document.createElement('span');
-  totalAmount.id = 'total-flexible-expenses';
-  
-  // Calculate total of all flexible expenses
-  const total = flexibleExpensesData
-    .filter(exp => exp.department === currentDepartment)
-    .reduce((sum, exp) => sum + exp.monthlyValues.reduce((monthSum, val) => monthSum + val, 0), 0);
-  
-  totalAmount.textContent = formatCurrency(total, currentCurrency);
-  
-  totalRow.appendChild(totalLabel);
-  totalRow.appendChild(totalAmount);
-  grandTotal.appendChild(totalRow);
-  
-  ExpContainer.appendChild(grandTotal);
 
-  // Add bottom section for new expense button
-  const bottomSection = document.createElement('div');
-  bottomSection.className = 'newexpense-bottom';
-  
-  const addAccountBtn2 = document.createElement('button');
-  addAccountBtn2.textContent = '+ Add Investments or Other Expenses';
-  addAccountBtn2.type = 'button';
-  addAccountBtn2.addEventListener('click', addNewAccount);
-  
-  bottomSection.appendChild(addAccountBtn2);
-  ExpContainer.appendChild(bottomSection);
+      // Add bottom section for new expense button
+      const bottomSection = document.createElement('div');
+      bottomSection.className = 'newexpense-bottom';
+
+      const addAccountBtn2 = document.createElement('button');
+      addAccountBtn2.textContent = '+ Add Investments or Other Expenses';
+      addAccountBtn2.type = 'button';
+      addAccountBtn2.addEventListener('click', addNewAccount);
+
+      bottomSection.appendChild(addAccountBtn2);
+      ExpContainer.appendChild(bottomSection);
     }
-    
+
+
+
     function addNewAccount() {
-    const newAccount = {
+      const newAccount = {
         id: "custom",
         Name: "",
         CustomName: "Enter Investment/Expense Description", // This will be updated when user types
         Type: "Expense",
         Category: "Operating Expenses",
-        Subcategory: "Other"
-    };
+        Subcategory: "Other",
+        justification: ""
+      };
 
-    expense_accounts.push(newAccount);
-    
-    // Create corresponding expense data with CustomName
-    const newExpenseData = {
+      expense_accounts.push(newAccount);
+
+      // Create corresponding expense data with CustomName
+      const newExpenseData = {
         account: newAccount.id,
         department: currentDepartment,
         monthlyValues: Array(12).fill(0),
         CustomName: newAccount.CustomName,  // Add CustomName to expense data
         investmentRequest: false  // Add investment request field
-    };
-    flexibleExpensesData.push(newExpenseData);
+      };
+      flexibleExpensesData.push(newExpenseData);
 
-    renderExpenses();
-}
+      renderExpenses();
+    }
 
-function getLastActualMonth() {
-    let lastActualMonth = -1;
-    flexibleExpensesData.forEach(exp => {
+    function getLastActualMonth() {
+      let lastActualMonth = -1;
+      flexibleExpensesData.forEach(exp => {
         if (exp.actualMonthlyValues) {
-            exp.actualMonthlyValues.forEach((value, idx) => {
-                if (value !== null && value !== undefined) {
-                    lastActualMonth = Math.max(lastActualMonth, idx);
-                }
-            });
+          exp.actualMonthlyValues.forEach((value, idx) => {
+            if (value !== null && value !== undefined) {
+              lastActualMonth = Math.max(lastActualMonth, idx);
+            }
+          });
         }
-    });
-    return lastActualMonth;
-}
+      });
+      return lastActualMonth;
+    }
 
-function findExpenseData(accountId, department) {
-    return flexibleExpensesData.find(exp => 
-        exp.account === accountId && 
+    function findExpenseData(accountId, department) {
+      return flexibleExpensesData.find(exp =>
+        exp.account === accountId &&
         exp.department === department
-    );
-}
+      );
+    }
 
-function createAccountLine(account, expenseData, index) {
-    const line = document.createElement('div');
-    line.className = 'allocation-line';
-    line.dataset.accountIndex = index;
+    function createAccountLine(account, expenseData, index) {
+      const line = document.createElement('div');
+      line.className = 'allocation-line';
+      line.dataset.accountIndex = index;
 
-    // Find last month with actuals first
-    const monthsWithActuals = new Set();
-    let lastActualMonth = -1;
-    flexibleExpensesData.forEach(exp => {
+      // Add delete button for custom accounts
+      if (account.id === "custom") {
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'delete-line';
+        deleteBtn.innerHTML = '&times;';
+        deleteBtn.addEventListener('click', () => {
+          if (confirm('Are you sure you want to delete this expense line?')) {
+            // Remove from expense_accounts array
+            const accountIndex = expense_accounts.findIndex(acc =>
+              acc.id === account.id && acc.CustomName === account.CustomName
+            );
+            if (accountIndex !== -1) {
+              expense_accounts.splice(accountIndex, 1);
+            }
+
+            // Remove from flexibleExpensesData array
+            const expenseIndex = flexibleExpensesData.findIndex(exp =>
+              exp.account === account.id && exp.CustomName === expenseData.CustomName
+            );
+            if (expenseIndex !== -1) {
+              flexibleExpensesData.splice(expenseIndex, 1);
+            }
+
+            // Re-render the expenses grid
+            renderExpenses();
+          }
+        });
+        line.appendChild(deleteBtn);
+      } else {
+        // Add empty div for alignment
+        const emptyDiv = document.createElement('div');
+        line.appendChild(emptyDiv);
+      }
+
+      // Find last month with actuals first
+      const monthsWithActuals = new Set();
+      let lastActualMonth = -1;
+      flexibleExpensesData.forEach(exp => {
         if (exp.actualMonthlyValues) {
-            exp.actualMonthlyValues.forEach((value, monthIndex) => {
-                if (value !== null && value !== undefined) {
-                    monthsWithActuals.add(monthIndex);
-                    lastActualMonth = Math.max(lastActualMonth, monthIndex);
-                }
-            });
+          exp.actualMonthlyValues.forEach((value, monthIndex) => {
+            if (value !== null && value !== undefined) {
+              monthsWithActuals.add(monthIndex);
+              lastActualMonth = Math.max(lastActualMonth, monthIndex);
+            }
+          });
         }
-    });
+      });
 
-    // Account Name handling
-    if (account.id === "custom") {
-    const nameInput = document.createElement('input');
-    nameInput.type = 'text';
-    nameInput.className = 'account-name-input';
-    nameInput.value = expenseData.CustomName || account.CustomName || '';
-    nameInput.placeholder = 'Enter Investment/Expense Description';
-    nameInput.addEventListener('blur', e => {
-        const newName = e.target.value;
-        account.CustomName = newName;
-        account.Name = newName;
-        expenseData.CustomName = newName; // Save to expense data
-        
-        // Update the corresponding flexible expense data
-        const expenseIndex = flexibleExpensesData.findIndex(exp => 
-            exp.account === account.id && 
+      // Account Name handling
+      if (account.id === "custom") {
+        const nameInput = document.createElement('input');
+        nameInput.type = 'text';
+        nameInput.className = 'account-name-input';
+        nameInput.value = expenseData.CustomName || account.CustomName || '';
+        nameInput.placeholder = 'Enter Investment/Expense Description';
+        nameInput.addEventListener('blur', e => {
+          const newName = e.target.value;
+          account.CustomName = newName;
+          account.Name = newName;
+          expenseData.CustomName = newName; // Save to expense data
+
+          // Update the corresponding flexible expense data
+          const expenseIndex = flexibleExpensesData.findIndex(exp =>
+            exp.account === account.id &&
             exp.department === currentDepartment
-        );
-        if (expenseIndex !== -1) {
+          );
+          if (expenseIndex !== -1) {
             flexibleExpensesData[expenseIndex].CustomName = newName;
-        }
-    });
-    line.appendChild(nameInput);
-}else {
+          }
+        });
+        line.appendChild(nameInput);
+      } else {
         const nameDiv = document.createElement('div');
         nameDiv.textContent = account.Name;
         line.appendChild(nameDiv);
-    }
-    
-    if (account.id === "custom") {
-    const investmentCell = document.createElement('div');
-    const investmentCheckbox = document.createElement('input');
-    investmentCheckbox.type = 'checkbox';
-    investmentCheckbox.checked = expenseData.investmentRequest || false;
-    investmentCheckbox.addEventListener('change', e => {
-        // Update the expenseData directly
-        expenseData.investmentRequest = e.target.checked;
-        
-        // Find and update in flexibleExpensesData array
-        const expenseIndex = flexibleExpensesData.findIndex(exp => 
-            exp.account === account.id && 
+      }
+
+      if (account.id === "custom") {
+        const investmentCell = document.createElement('div');
+        const investmentCheckbox = document.createElement('input');
+        investmentCheckbox.type = 'checkbox';
+        investmentCheckbox.checked = expenseData.investmentRequest || false;
+        investmentCheckbox.addEventListener('change', e => {
+          // Update the expenseData directly
+          expenseData.investmentRequest = e.target.checked;
+
+          // Find and update in flexibleExpensesData array
+          const expenseIndex = flexibleExpensesData.findIndex(exp =>
+            exp.account === account.id &&
             exp.department === currentDepartment
-        );
-        if (expenseIndex !== -1) {
+          );
+          if (expenseIndex !== -1) {
             flexibleExpensesData[expenseIndex].investmentRequest = e.target.checked;
-        }
-    });
-    investmentCell.appendChild(investmentCheckbox);
-    line.appendChild(investmentCell);
-} else {
-    // Add empty cell for non-custom expenses
-    const emptyCell = document.createElement('div');
-    line.appendChild(emptyCell);
-}
+          }
+        });
+        investmentCell.appendChild(investmentCheckbox);
+        line.appendChild(investmentCell);
+      } else {
+        // Add empty cell for non-custom expenses
+        const emptyCell = document.createElement('div');
+        line.appendChild(emptyCell);
+      }
 
-    // Total Allocation Input
-    const totalAllocInput = document.createElement('input');
-    totalAllocInput.type = 'text';
-    totalAllocInput.className = 'total-alloc-input';
-    totalAllocInput.value = formatCurrency(expenseData.totalAllocation || 0, currentCurrency);
-    totalAllocInput.addEventListener('blur', e => {
-    handleMonthlyValue(e.target, expenseData.totalAllocation || 0, currentCurrency, (newValue) => {
-        expenseData.totalAllocation = newValue;
-        distributeAllocation(expenseData, line);
-    });
-});
-    line.appendChild(totalAllocInput);
+      // Total Allocation Input
+      const totalAllocInput = document.createElement('input');
+      totalAllocInput.type = 'text';
+      totalAllocInput.className = 'total-alloc-input';
+      totalAllocInput.value = formatCurrency(expenseData.totalAllocation || 0, currentCurrency);
+      totalAllocInput.addEventListener('blur', e => {
+        handleMonthlyValue(e.target, expenseData.totalAllocation || 0, currentCurrency, (newValue) => {
+          expenseData.totalAllocation = newValue;
+          distributeAllocation(expenseData, line);
+        });
+      });
+      line.appendChild(totalAllocInput);
 
-    // Create allocation type dropdown using the same lastActualMonth
-    // In createAccountLine function, update the allocation types check:
-const availableAllocTypes = [
-    { value: 'straight-line', label: 'Straight Line' }
-];
+      // Justification
+      const ExpJustificationInput = document.createElement('input');
+      ExpJustificationInput.type = 'text';
+      ExpJustificationInput.className = 'total-just-input';
+      ExpJustificationInput.value = expenseData.justification || '';
+      
+      line.appendChild(ExpJustificationInput);
 
-// Check if quarters are still available
-const q1Available = getAvailableMonths(0, 2).length > 0;
-const q2Available = getAvailableMonths(3, 5).length > 0;
-const q3Available = getAvailableMonths(6, 8).length > 0;
-const q4Available = getAvailableMonths(9, 11).length > 0;
+      // Create allocation type dropdown using the same lastActualMonth
+      // In createAccountLine function, update the allocation types check:
+      const availableAllocTypes = [
+        { value: 'straight-line', label: 'Straight Line' }
+      ];
 
-if (q1Available) availableAllocTypes.push({ value: 'q1', label: 'Q1 Only (Jul-Sep)' });
-if (q2Available) availableAllocTypes.push({ value: 'q2', label: 'Q2 Only (Oct-Dec)' });
-if (q3Available) availableAllocTypes.push({ value: 'q3', label: 'Q3 Only (Jan-Mar)' });
-if (q4Available) availableAllocTypes.push({ value: 'q4', label: 'Q4 Only (Apr-Jun)' });
+      // Check if quarters are still available
+      const q1Available = getAvailableMonths(0, 2).length > 0;
+      const q2Available = getAvailableMonths(3, 5).length > 0;
+      const q3Available = getAvailableMonths(6, 8).length > 0;
+      const q4Available = getAvailableMonths(9, 11).length > 0;
 
-// Check if halves are still available
-const firstHalfAvailable = getAvailableMonths(0, 5).length > 0;
-const secondHalfAvailable = getAvailableMonths(6, 11).length > 0;
+      if (q1Available) availableAllocTypes.push({ value: 'q1', label: 'Q1 Only (Jul-Sep)' });
+      if (q2Available) availableAllocTypes.push({ value: 'q2', label: 'Q2 Only (Oct-Dec)' });
+      if (q3Available) availableAllocTypes.push({ value: 'q3', label: 'Q3 Only (Jan-Mar)' });
+      if (q4Available) availableAllocTypes.push({ value: 'q4', label: 'Q4 Only (Apr-Jun)' });
 
-if (firstHalfAvailable) availableAllocTypes.push({ value: 'first-half', label: '1H FY (Jul-Dec)' });
-if (secondHalfAvailable) availableAllocTypes.push({ value: 'second-half', label: '2H FY (Jan-Jun)' });
-    // Create allocation type dropdown with only available options
-    const allocTypeSelect = document.createElement('select');
-    allocTypeSelect.className = 'alloc-type-select';
-    availableAllocTypes.forEach(type => {
+      // Check if halves are still available
+      const firstHalfAvailable = getAvailableMonths(0, 5).length > 0;
+      const secondHalfAvailable = getAvailableMonths(6, 11).length > 0;
+
+      if (firstHalfAvailable) availableAllocTypes.push({ value: 'first-half', label: '1H FY (Jul-Dec)' });
+      if (secondHalfAvailable) availableAllocTypes.push({ value: 'second-half', label: '2H FY (Jan-Jun)' });
+      // Create allocation type dropdown with only available options
+      const allocTypeSelect = document.createElement('select');
+      allocTypeSelect.className = 'alloc-type-select';
+      availableAllocTypes.forEach(type => {
         const option = document.createElement('option');
         option.value = type.value;
         option.textContent = type.label;
         if (type.value === (expenseData.allocationType || 'straight-line')) {
-            option.selected = true;
+          option.selected = true;
         }
         allocTypeSelect.appendChild(option);
-    });
+      });
 
-    allocTypeSelect.addEventListener('change', e => {
+      allocTypeSelect.addEventListener('change', e => {
         expenseData.allocationType = e.target.value;
         distributeAllocation(expenseData, line);
-    });
-    line.appendChild(allocTypeSelect);
+      });
+      line.appendChild(allocTypeSelect);
 
-  
-    // Monthly values container
-    const monthlyContainer = document.createElement('div');
-    monthlyContainer.className = 'monthly-values';
-    
-     // Monthly inputs
-     let spendToDateTotal = 0;  // Only for actual values
-    let grandTotal = 0;        // For all values
-    
-    for (let i = 0; i < 12; i++) {
+      //We don't want to distribute on load because we'd be overwriting user-entered values. 
+      //distributeAllocation(expenseData, line);
+
+      // Monthly values container
+      const monthlyContainer = document.createElement('div');
+      monthlyContainer.className = 'monthly-values';
+
+      // Monthly inputs
+      let spendToDateTotal = 0;  // Only for actual values
+      let grandTotal = 0;        // For all values
+
+      for (let i = 0; i < 12; i++) {
         const monthInput = document.createElement('input');
         monthInput.type = 'text';
         monthInput.className = 'monthly-input';
-        
-        const hasAccountActual = expenseData.actualMonthlyValues && 
-                               i < expenseData.actualMonthlyValues.length && 
-                               expenseData.actualMonthlyValues[i] !== null;
-        
+
+        const hasAccountActual = expenseData.actualMonthlyValues &&
+          i < expenseData.actualMonthlyValues.length &&
+          expenseData.actualMonthlyValues[i] !== null;
+
         const isMonthLocked = monthsWithActuals.has(i);
-        
+
         if (hasAccountActual || isMonthLocked) {
-            // Use actual value if available, otherwise use planned value for locked months
-            const value = hasAccountActual ? expenseData.actualMonthlyValues[i] : 
-                                          expenseData.monthlyValues[i] || 0;
-            monthInput.value = formatCurrency(value, currentCurrency);
-            monthInput.disabled = true;
-            monthInput.classList.add(hasAccountActual ? 'actual-value' : 'locked-month');
-            expenseData.monthlyValues[i] = value;
-            spendToDateTotal += value;  // Add to spend-to-date total
-            grandTotal += value;        // Also add to grand total
+          // Use actual value if available, otherwise use planned value for locked months
+          const value = hasAccountActual ? expenseData.actualMonthlyValues[i] :
+            expenseData.monthlyValues[i] || 0;
+          monthInput.value = formatCurrency(value, currentCurrency);
+          monthInput.disabled = true;
+          monthInput.classList.add(hasAccountActual ? 'actual-value' : 'locked-month');
+          expenseData.monthlyValues[i] = value;
+          spendToDateTotal += value;  // Add to spend-to-date total
+          grandTotal += value;        // Also add to grand total
         } else {
-            const plannedValue = expenseData.monthlyValues[i] || 0;
-            monthInput.value = formatCurrency(plannedValue, currentCurrency);
-            monthInput.dataset.monthIndex = i;
-            monthInput.dataset.originalValue = plannedValue;
-            grandTotal += plannedValue;  // Only add to grand total
+          const plannedValue = expenseData.monthlyValues[i] || 0;
+          monthInput.value = formatCurrency(plannedValue, currentCurrency);
+          monthInput.dataset.monthIndex = i;
+          monthInput.dataset.originalValue = plannedValue;
+          grandTotal += plannedValue;  // Only add to grand total
         }
-        
+
         line.appendChild(monthInput);
 
         // Add Spend to Date column after last actual month
         if (i === lastActualMonth && lastActualMonth >= 0) {
-            const spendToDateCell = document.createElement('div');
-            spendToDateCell.className = 'monthly-input total-value spend-to-date';
-            spendToDateCell.textContent = formatCurrency(spendToDateTotal, currentCurrency);
-            line.appendChild(spendToDateCell);
+          const spendToDateCell = document.createElement('div');
+          spendToDateCell.className = 'monthly-input total-value spend-to-date';
+          spendToDateCell.textContent = formatCurrency(spendToDateTotal, currentCurrency);
+          line.appendChild(spendToDateCell);
         }
+      }
+
+      // Total cell (all values)
+      const totalCell = document.createElement('div');
+      totalCell.className = 'monthly-input total-value';
+      totalCell.textContent = formatCurrency(grandTotal, currentCurrency);
+      line.appendChild(totalCell);
+
+      return line;
     }
 
-    // Total cell (all values)
-    const totalCell = document.createElement('div');
-    totalCell.className = 'monthly-input total-value';
-    totalCell.textContent = formatCurrency(grandTotal, currentCurrency);
-    line.appendChild(totalCell);
 
-    return line;
-}
-
-
-function getAvailableMonths(start, end) {
-    const lastActualMonth = getLastActualMonth();
-    let months = [];
-    for (let i = Math.max(start, lastActualMonth + 1); i <= end; i++) {
+    function getAvailableMonths(start, end) {
+      const lastActualMonth = getLastActualMonth();
+      let months = [];
+      for (let i = Math.max(start, lastActualMonth + 1); i <= end; i++) {
         months.push(i);
+      }
+      return months;
     }
-    return months;
-}
 
-function distributeAllocation(expenseData, line) {
-    const total = expenseData.totalAllocation || 0;
-    const type = expenseData.allocationType || 'straight-line';
-    
-    // Use the helper to get lastActualMonth
-    let lastActualMonth = getLastActualMonth();
+    function distributeAllocation(expenseData, line) {
+      const total = expenseData.totalAllocation || 0;
+      const type = expenseData.allocationType || 'straight-line';
 
-    // Calculate spend to date
-    let spendToDate = 0;
-    for (let i = 0; i <= lastActualMonth; i++) {
+      // Use the helper to get lastActualMonth
+      let lastActualMonth = getLastActualMonth();
+
+      // Calculate spend to date
+      let spendToDate = 0;
+      for (let i = 0; i <= lastActualMonth; i++) {
         if (expenseData.actualMonthlyValues && expenseData.actualMonthlyValues[i] !== null) {
-            spendToDate += expenseData.actualMonthlyValues[i];
+          spendToDate += expenseData.actualMonthlyValues[i];
         } else if (expenseData.monthlyValues[i]) {
-            spendToDate += expenseData.monthlyValues[i];
+          spendToDate += expenseData.monthlyValues[i];
         }
-    }
-    
-    const remainingTotal = total - spendToDate;
-    const startMonth = lastActualMonth + 1;
-    const newMonthlyValues = [...expenseData.monthlyValues];
+      }
 
-    // Clear future values first
-    for (let i = startMonth; i < 12; i++) {
+      const remainingTotal = total - spendToDate;
+      const startMonth = lastActualMonth + 1;
+      const newMonthlyValues = [...expenseData.monthlyValues];
+
+      // Clear future values first
+      for (let i = startMonth; i < 12; i++) {
         newMonthlyValues[i] = 0;
-    }
+      }
 
-    function distributeAmount(amount, months) {
+      function distributeAmount(amount, months) {
         if (months.length === 0) return;
         const amountToDistribute = Math.max(0, amount);
         const monthlyAmount = Math.floor(amountToDistribute / months.length);
         let distributed = 0;
         for (let i = 0; i < months.length - 1; i++) {
-            const monthIndex = months[i];
-            newMonthlyValues[monthIndex] = monthlyAmount;
-            distributed += monthlyAmount;
+          const monthIndex = months[i];
+          newMonthlyValues[monthIndex] = monthlyAmount;
+          distributed += monthlyAmount;
         }
         const lastMonthIndex = months[months.length - 1];
         const remainder = amountToDistribute - distributed;
         newMonthlyValues[lastMonthIndex] = remainder;
-    }
+      }
 
-    // Update allocation based on type
-    switch(type) {
+      // Update allocation based on type
+      switch (type) {
         case 'straight-line':
-            distributeAmount(remainingTotal, getAvailableMonths(startMonth, 11));
-            break;
+          distributeAmount(remainingTotal, getAvailableMonths(startMonth, 11));
+          break;
         case 'q1':
-            distributeAmount(remainingTotal, getAvailableMonths(0, 2));
-            break;
+          distributeAmount(remainingTotal, getAvailableMonths(0, 2));
+          break;
         case 'q2':
-            distributeAmount(remainingTotal, getAvailableMonths(3, 5));
-            break;
+          distributeAmount(remainingTotal, getAvailableMonths(3, 5));
+          break;
         case 'q3':
-            distributeAmount(remainingTotal, getAvailableMonths(6, 8));
-            break;
+          distributeAmount(remainingTotal, getAvailableMonths(6, 8));
+          break;
         case 'q4':
-            distributeAmount(remainingTotal, getAvailableMonths(9, 11));
-            break;
+          distributeAmount(remainingTotal, getAvailableMonths(9, 11));
+          break;
         case 'first-half':
-            distributeAmount(remainingTotal, getAvailableMonths(0, 5));
-            break;
+          distributeAmount(remainingTotal, getAvailableMonths(0, 5));
+          break;
         case 'second-half':
-            distributeAmount(remainingTotal, getAvailableMonths(6, 11));
-            break;
-    }
+          distributeAmount(remainingTotal, getAvailableMonths(6, 11));
+          break;
+      }
 
-    expenseData.monthlyValues = newMonthlyValues;
+      expenseData.monthlyValues = newMonthlyValues;
 
-    const inputs = line.querySelectorAll('input.monthly-input');
-    newMonthlyValues.forEach((value, index) => {
+      const inputs = line.querySelectorAll('input.monthly-input');
+      newMonthlyValues.forEach((value, index) => {
         if (inputs[index]) {
-            inputs[index].value = formatCurrency(value, currentCurrency);
+          inputs[index].value = formatCurrency(value, currentCurrency);
         }
-    });
+      });
 
-    const totalCell = line.querySelector('.total-value:last-child');
-    const spendToDateCell = line.querySelector('.spend-to-date');
-    
-    if (spendToDateCell) {
+      const totalCell = line.querySelector('.total-value:last-child');
+      const spendToDateCell = line.querySelector('.spend-to-date');
+
+      if (spendToDateCell) {
         spendToDateCell.textContent = formatCurrency(spendToDate, currentCurrency);
-    }
-    
-    updateLineTotal(expenseData, totalCell);
-    updateTotals();
-}
+      }
 
-function getAvailableMonths(start, end) {
-    // Find last month with actuals across all accounts
-    let lastActualMonth = -1;
-    flexibleExpensesData.forEach(exp => {
+      updateLineTotal(expenseData, totalCell);
+      updateTotals();
+    }
+
+    function getAvailableMonths(start, end) {
+      // Find last month with actuals across all accounts
+      let lastActualMonth = -1;
+      flexibleExpensesData.forEach(exp => {
         if (exp.actualMonthlyValues) {
-            exp.actualMonthlyValues.forEach((value, idx) => {
-                if (value !== null && value !== undefined) {
-                    lastActualMonth = Math.max(lastActualMonth, idx);
-                }
-            });
+          exp.actualMonthlyValues.forEach((value, idx) => {
+            if (value !== null && value !== undefined) {
+              lastActualMonth = Math.max(lastActualMonth, idx);
+            }
+          });
         }
-    });
+      });
 
-    // Return all months in the range that are after lastActualMonth
-    let months = [];
-    // Ensure we include end in the range
-    for (let i = Math.max(start, lastActualMonth + 1); i <= end; i++) {
+      // Return all months in the range that are after lastActualMonth
+      let months = [];
+      // Ensure we include end in the range
+      for (let i = Math.max(start, lastActualMonth + 1); i <= end; i++) {
         months.push(i);
+      }
+      return months;
     }
-    return months;
-}
 
-function handleMonthlyValue(input, currentValue, currency, onSuccess) {
-    let rawValue = input.value.replace(/[^0-9.-]+/g, '');
-    
-    if (!/^\d+$/.test(rawValue)) {
+    function handleMonthlyValue(input, currentValue, currency, onSuccess) {
+      let rawValue = input.value.replace(/[^0-9.-]+/g, '');
+
+      if (!/^\d+$/.test(rawValue)) {
         alert("Please enter a valid whole number.");
         input.value = formatCurrency(currentValue, currency);
         return false;
-    }
-    
-    const newValue = parseInt(rawValue);
-    input.value = formatCurrency(newValue, currency);
-    
-    if (onSuccess) {
+      }
+
+      const newValue = parseInt(rawValue);
+      input.value = formatCurrency(newValue, currency);
+
+      if (onSuccess) {
         onSuccess(newValue);
+      }
+
+      return newValue;
     }
-    
-    return newValue;
-}
-function updateLineTotal(expenseData, totalCell) {
-    const total = expenseData.monthlyValues.reduce((sum, val) => sum + val, 0);
-    totalCell.textContent = formatCurrency(total, currentCurrency);
-}
+    function updateLineTotal(expenseData, totalCell) {
+      if (totalCell) {
+        const total = expenseData.monthlyValues.reduce((sum, val) => sum + val, 0);
+        totalCell.textContent = formatCurrency(total, currentCurrency);
+      } else {
+        console.warn('totalCell is null in updateLineTotal');
+      }
+    }
 
     function createEmployeeBox(employee) {
       const box = document.createElement('div');
@@ -1417,6 +1484,41 @@ function updateLineTotal(expenseData, totalCell) {
       titleGroup.appendChild(titleLabel);
       titleGroup.appendChild(titleInput);
       info.appendChild(titleGroup);
+
+      // Add Domicile dropdown
+      const domicileGroup = document.createElement('div');
+      domicileGroup.className = 'field-group';
+      const domicileLabel = document.createElement('label');
+      domicileLabel.textContent = 'Location';
+      const domicileSelect = document.createElement('select');
+
+      // Add empty option first
+      const emptyOption = document.createElement('option');
+      emptyOption.value = '';
+      emptyOption.textContent = 'Select Location';
+      domicileSelect.appendChild(emptyOption);
+
+      // Add options from fringe_rates
+      budgetData.metadata.fringe_rates.forEach(rate => {
+        const option = document.createElement('option');
+        option.value = rate.domicile;
+        option.textContent = rate.domicile;
+        if (rate.domicile === employee.domicile) {
+          option.selected = true;
+        }
+        domicileSelect.appendChild(option);
+      });
+
+      domicileSelect.addEventListener('change', e => {
+        updateEmployeeField(employee.id, 'domicile', e.target.value);
+        updateTotals();
+        validateEmployee(employee);
+      });
+
+      domicileGroup.appendChild(domicileLabel);
+      domicileGroup.appendChild(domicileSelect);
+      info.appendChild(domicileGroup);
+
 
       // SalaryOld field
       const oldsalaryGroup = document.createElement('div');
@@ -1598,6 +1700,10 @@ function updateLineTotal(expenseData, totalCell) {
         const hireJustificationInput = document.createElement('input');
         hireJustificationInput.type = 'text';
         hireJustificationInput.value = employee.justification;
+        hireJustificationInput.addEventListener('blur', e => {
+          updateEmployeeField(employee.id, 'justification', e.target.value);
+        validateEmployee(employee);
+      });
         hireJustificationGroup.appendChild(hireJustificationLabel);
         hireJustificationGroup.appendChild(hireJustificationInput); // Append the div
         box.appendChild(hireJustificationGroup);
@@ -1730,6 +1836,7 @@ function updateLineTotal(expenseData, totalCell) {
         id: Date.now(), // Use timestamp as temporary ID
         name: 'New Employee',
         jobTitle: 'Job Title',
+        domicile: '',
         salary: 0,
         salaryOld: 0,
         salaryChangeMonth: 0,
@@ -1868,29 +1975,44 @@ function updateLineTotal(expenseData, totalCell) {
       //}, 0);
       const errorElement = document.getElementById(`error-${employee.id}`);
       const employeeBox = document.querySelector(`.employee-box[data-employee-id="${employee.id}"]`);
-
+      let errorcount = 0;
       errorElement.textContent = '';
 
       if (totalPercent != 100) {
-        errorElement.textContent += 'Allocations must total to 100%.';
+        errorElement.textContent += 'Employee Allocations must total to 100%. ';       
+      }
+
+      // Check if justification is provided for new employees
+      if (!employee.isExisting && !employee.justification) {
+        errorElement.textContent += 'Employee Justification for hire is required. ';
+        errorcount++;
+      }
+
+       // Check if domicile is selected
+       if (!employee.domicile) {
+        errorElement.textContent += 'Location (domicile) is required. ';
+        errorcount++;
+      }
+
+      
+      if(errorcount>0){
         employeeBox.classList.add('error');
         return false;
-        console.log()
       }
-      //Allow for small rounding differences (e.g., $11 difference in a $100,000 salary)
-      //const roundingTolerance = Math.max(12, Math.round(employee.salary * 0.0001)); // 0.01% tolerance or at least $12
-
-      //if (totalAllocatedValue - employee.salary > roundingTolerance) {
-      //  errorElement.textContent += '  The total of all Monthly values must not be greater than the salary amount.'; employeeBox.classList.add('error');
-      //}
-
 
       else {
-        errorElement.textContent = '';
-        employeeBox.classList.remove('error');
-        return true;
+      errorElement.textContent = '';
+      employeeBox.classList.remove('error');
+      return true;
       }
     }
+    //Allow for small rounding differences (e.g., $11 difference in a $100,000 salary)
+    //const roundingTolerance = Math.max(12, Math.round(employee.salary * 0.0001)); // 0.01% tolerance or at least $12
+
+    //if (totalAllocatedValue - employee.salary > roundingTolerance) {
+    //  errorElement.textContent += '  The total of all Monthly values must not be greater than the salary amount.'; employeeBox.classList.add('error');
+    //}
+
 
     function validateAllEmployees() {
       const filteredEmployees = employeeData.filter(employee =>
@@ -1913,7 +2035,7 @@ function updateLineTotal(expenseData, totalCell) {
       // Update validation summary
       const validationSummary = document.getElementById('validation-summary');
       if (hasValidationErrors) {
-        validationSummary.textContent = `Please fix ${validationErrors} staff validation error${validationErrors > 1 ? 's' : ''} before saving.`;
+        validationSummary.textContent = `Please fix ${validationErrors} validation error${validationErrors > 1 ? 's' : ''} before saving.`;
       } else {
         validationSummary.textContent = '';
       }
@@ -1931,22 +2053,33 @@ function updateLineTotal(expenseData, totalCell) {
       // Calculate total allocated to home department
       let totalAllocated = 0;
       let totalSalary = 0;
+      let totalSalaryWithFringe = 0;
+      let totalCore = 0;
+
       filteredEmployees.forEach(employee => {
         let employeeTotal = 0;
         employee.allocations.forEach(allocation => {
           totalSalary += allocation.monthlyValues.reduce((sum, val) => sum + val, 0);
+          const fringeRate = budgetData.metadata.fringe_rates.find(rate =>
+            rate.domicile === (employee.domicile || 'TBD')
+          )?.rate || 0.41; // Default to 0.41 if no rate found
+          
+          totalSalaryWithFringe += allocation.monthlyValues.reduce((sum, val) => sum + val, 0) * (1 + fringeRate);
+
           if (allocation.department === currentDepartment) {
             // Sum the monthly values for each allocation
-            const allocationTotal = allocation.monthlyValues.reduce((sum, val) => sum + val, 0);
+            const allocationTotal = allocation.monthlyValues.reduce((sum, val) => sum + val, 0) * (1 + fringeRate);
             totalAllocated += allocationTotal;
+            totalCore += (allocationTotal * (allocation.percentCore / 100));
           }
+          
           // Update the total for each allocation line
           const totalValue = allocation.monthlyValues.reduce((sum, val) => sum + val, 0);
           const totalCell = document.getElementById(`linetotal-${allocation.id}`);
           if (totalCell) {
             totalCell.textContent = formatCurrency(totalValue, currentCurrency);
           }
-
+         
           // Add to employee's total
           employeeTotal += totalValue;
         });
@@ -1958,32 +2091,23 @@ function updateLineTotal(expenseData, totalCell) {
         }
       });
 
-       // Update flexible expenses total
-  const flexibleTotal = flexibleExpensesData
-    .filter(exp => exp.department === currentDepartment)
-    .reduce((sum, exp) => sum + exp.monthlyValues.reduce((monthSum, val) => monthSum + val, 0), 0);
-  
-  const totalFlexibleElement = document.getElementById('total-flexible-expenses');
-  if (totalFlexibleElement) {
-    totalFlexibleElement.textContent = formatCurrency(flexibleTotal, currentCurrency);
-  }
 
-      // Calculate total allocated to core
-      let totalCore = 0;
-      filteredEmployees.forEach(employee => {
-        employee.allocations.forEach(allocation => {
-          if (allocation.department === currentDepartment) {
-            // Sum the monthly values for each allocation and multiply by percentCore
-            const allocationTotal = allocation.monthlyValues.reduce((sum, val) => sum + val, 0);
-            totalCore += (allocationTotal * (allocation.percentCore / 100));
-          }
-        });
-      });
+      
+      // Update flexible expenses total
+      const flexibleTotal = flexibleExpensesData
+        .filter(exp => exp.department === currentDepartment)
+        .reduce((sum, exp) => sum + exp.monthlyValues.reduce((monthSum, val) => monthSum + val, 0), 0);
 
-      document.getElementById('total-salaries').textContent = formatCurrency(totalSalary, currentCurrency);
-      document.getElementById('total-allocated').textContent = formatCurrency(totalAllocated, currentCurrency);
-      document.getElementById('total-allocated-core').textContent = formatCurrency(totalCore, currentCurrency);
+    
+      document.getElementById('total-salaries').textContent = formatCurrency(Math.round(totalSalary), currentCurrency);
+      document.getElementById('total-allocated').textContent = formatCurrency(Math.round(totalAllocated), currentCurrency);
+      document.getElementById('total-allocated2').textContent = formatCurrency(Math.round(totalAllocated), currentCurrency);
+      document.getElementById('total-allocated-core').textContent = formatCurrency(Math.round(totalCore), currentCurrency);
+      document.getElementById('total-salaries-with-fringe').textContent = formatCurrency(Math.round(totalSalaryWithFringe), currentCurrency);
+      document.getElementById('total-flexible-expenses').textContent = formatCurrency(Math.round(flexibleTotal), currentCurrency);
+      document.getElementById('grand-total').textContent = formatCurrency(Math.round(totalAllocated + flexibleTotal), currentCurrency);
     }
+
 
     function createGrandTotalRow(employee) {
       const grandTotalRow = document.createElement('div');
@@ -2010,7 +2134,7 @@ function updateLineTotal(expenseData, totalCell) {
       return grandTotalRow;
     }
 
-    
+
 
     function saveData() {
       if (hasValidationErrors) {
@@ -2048,34 +2172,34 @@ function updateLineTotal(expenseData, totalCell) {
     }
 
     function generateMonthlyValues(newSalary, salaryOld, salaryChangeMonth, percent, currency) {
-    if (currentCurrency != currency) {
+      if (currentCurrency != currency) {
         const fx_rate = fx_rates.find(rate => rate.from === currency && rate.to === currentCurrency);
         newSalary = newSalary * fx_rate.rate;
         salaryOld = salaryOld * fx_rate.rate;
-    }
+      }
 
-    const totalAmountold = salaryOld * (percent / 100);
-    const totalAmountNew = newSalary * (percent / 100);
-    const baseMonthlyAmountOld = totalAmountold / 12;
-    const baseMonthlyAmountNew = totalAmountNew / 12;
-    const roundedValues = []; // Initialize empty array
-    let sumNewValues = 0;
+      const totalAmountold = salaryOld * (percent / 100);
+      const totalAmountNew = newSalary * (percent / 100);
+      const baseMonthlyAmountOld = totalAmountold / 12;
+      const baseMonthlyAmountNew = totalAmountNew / 12;
+      const roundedValues = []; // Initialize empty array
+      let sumNewValues = 0;
 
-    // Use standard array assignment
-    for (let i = 0; i < 11; i++) {
+      // Use standard array assignment
+      for (let i = 0; i < 11; i++) {
         if (i < salaryChangeMonth) {
-            roundedValues[i] = Math.round(baseMonthlyAmountOld);
+          roundedValues[i] = Math.round(baseMonthlyAmountOld);
         } else {
-            roundedValues[i] = Math.round(baseMonthlyAmountNew);
-            sumNewValues += Math.round(baseMonthlyAmountNew);
+          roundedValues[i] = Math.round(baseMonthlyAmountNew);
+          sumNewValues += Math.round(baseMonthlyAmountNew);
         }
+      }
+
+      // Add the final month
+      roundedValues[11] = Math.round(baseMonthlyAmountNew * (12 - salaryChangeMonth)) - sumNewValues;
+
+      return roundedValues;
     }
-
-    // Add the final month
-    roundedValues[11] = Math.round(baseMonthlyAmountNew * (12 - salaryChangeMonth)) - sumNewValues;
-
-    return roundedValues;
-}
 
     function formatCurrency(amount, currency) {
       const numberFormat = new Intl.NumberFormat();
