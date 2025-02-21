@@ -42,12 +42,14 @@
         {
           "account": "6",
           "department": "12226",
-          "monthlyValues": [100, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+          "monthlyValues": [100, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+          "actualMonthlyValues": [1000, 0]
         },
         {
           "account": "7",
           "department": "12226",
-          "monthlyValues": [0, 100, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+          "monthlyValues": [0, 100, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+          "actualMonthlyValues": [1001, 0]
         }
       ],
       "employees": [
