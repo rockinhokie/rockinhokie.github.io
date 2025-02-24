@@ -87,13 +87,14 @@
     }
 
     button.danger {
-      background-color: var(--danger-color);
-      margin-top: auto;
-      /* Pushes button to the bottom */
-      align-self: flex-end;
-      /* Aligns button to the right */
-      width: 150px;
-    }
+    background-color: var(--danger-color);
+    margin-top: auto;
+    align-self: flex-end;
+    width: 125px;
+    height: 20px;
+    padding: 0px;
+    line-height: 1;
+}
 
     button.save {
       background-color: var(--success-color);
@@ -169,25 +170,28 @@
 
     .employee-box {
       border-radius: 8px;
-      margin-bottom: 10px;
-      padding: 10px;
+      margin-bottom: 5px;
+      padding: 0px;
       background-color: f5f5f5;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
       transition: border-color 0.3s;
     }
 
-    .employee-box:nth-child(odd) {
-      border: 1px solid var(--light-gray);
-    }
-
-    .employee-box:nth-child(even) {
-      border: 1px solid #bdbdbd;
-    }
-
+    .employee-box.expanded {
+      margin-top: 10px;
+      padding: 10px; /* Add padding when expanded */
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
     .employee-box.error {
       border-color: var(--danger-color);
       background-color: var(--danger-bg);
     }
+
+    .employee-allocations.error {
+      border-color: var(--danger-color);
+      background-color: var(--danger-bg);
+    }
+
 
     /*
     .employee-header {
@@ -199,15 +203,36 @@
 */
     .employee-info {
       display: grid;
-      grid-template-columns: 1fr 1fr 125px 150px 150px 100px 150px 150px;
+      grid-template-columns: 25px 1fr 1fr 125px 150px 150px 150px 150px 150px 50px;
       /* Added one more column */
-      gap: 15px;
-      margin-bottom: 15px;
+      gap: 5px;
+      margin-bottom: 5px;
+    }
+
+    .employee-column-headers {
+      display: grid;
+      grid-template-columns: 25px 1fr 1fr 125px 150px 150px 150px 150px 150px 50px;
+      gap: 5px;
+      margin-bottom: 10px;
+      font-weight: 500;
+      font-size: 13px;
+      color: #555;
+      padding: 1 1px;
+      width: 100%;
+      /* Fixed width to prevent wrapping */
+      justify-items: center;
+      text-align: center;
     }
 
     .employee-info .field-group {
       display: flex;
       flex-direction: column;
+      justify-items: center;
+      text-align: center;
+      align-items: center;
+      /* Add this line */
+      font-size: 14px;
+      vertical-align: middle;
     }
 
 
@@ -217,11 +242,13 @@
       margin-bottom: 5px;
     }
 
-    .field-group input {
-      padding: 8px;
+    .field-group input,
+    .field-group select {
+      padding: 3px;
       border: 1px solid var(--light-gray);
       border-radius: 4px;
-      font-size: 14px;
+      font-size: 13px;
+      width: 100%;
     }
 
     .field-group input:disabled {
@@ -274,6 +301,48 @@
       /* Fixed width to prevent wrapping */
     }
 
+    .expand-button {
+      background: none;
+      border: none;
+      color: var(--primary-color);
+      font-size: 16px;
+      cursor: pointer;
+      padding: 0 8px;
+      width: 30px;
+    }
+
+    .expand-button:hover {
+      color: var(--accent-color);
+    }
+
+    .employee-allocations {
+      display: none;
+      padding: 10px 30px;
+      background-color: white;
+    }
+
+    .employee-allocations.expanded {
+      display: block;
+      margin-bottom: 10px; /* Add margin when expanded */
+    }
+
+    .delete-line {
+      width: 24px;
+      height: 24px;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      background-color: transparent;
+      color: #999;
+      border: none;
+      cursor: pointer;
+    }
+
+    .delete-line:hover {
+      color: var(--danger-color);
+    }
 
     .allocation-line button.delete-line {
       width: 24px;
@@ -376,6 +445,7 @@
 
     .newemployee-bottom {
       text-align: right;
+      padding-top: 20px;
     }
 
     .grand-total {
@@ -398,23 +468,25 @@
       font-size: 18px;
       color: var(--primary-color);
     }
+
     .grand-final-total-row {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 10px;
-    border-top: 2px solid var(--primary-color);
-    padding-top: 10px;
-}
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      border-top: 2px solid var(--primary-color);
+      padding-top: 10px;
+    }
 
-.grand-final-total-row span:first-child {
-    font-weight: bold;
-}
+    .grand-final-total-row span:first-child {
+      font-weight: bold;
+    }
 
-.grand-final-total-row span:last-child {
-    font-size: 18px;
-    color: var(--primary-color);
-    font-weight: bold;
-}
+    .grand-final-total-row span:last-child {
+      font-size: 18px;
+      color: var(--primary-color);
+      font-weight: bold;
+    }
+
     .loading {
       display: flex;
       justify-content: center;
@@ -510,7 +582,7 @@
         <button class="tab" data-tab="flexible">Flexible Expenses</button>
         <div id="currency-display"></div>
       </div>
-      <button id="add-employee-btn" type="button">+ Add New Employee</button>
+
     </div>
     <div id="staff-container" class="tab-content active">
 
@@ -531,7 +603,7 @@
         <div class="grand-total-row">
           <span>Total Salaries + Fringe:</span>
           <span id="total-salaries-with-fringe">$0.00</span>
-      </div>
+        </div>
         <div class="grand-total-row">
           <span>Total Salaries + Fringe Allocated to Home Department:</span>
           <span id="total-allocated">$0.00</span>
@@ -551,20 +623,20 @@
       <!-- New flexible expenses content will go here -->
       <div id="flexible-expenses"></div>
       <div class="grand-total">
-      <div class="grand-total-row">
-        <span>Total Expenses:</span>
-        <span id="total-flexible-expenses">0.00</span>
-      </div>
-      <div class="grand-total-row">
-        <span>Total Salaries + Fringe Allocated to Home Department:</span>
-        <span id="total-allocated2">$0.00</span>
-      </div>
-      <div class="grand-final-total-row">
-        <span>Grand Total:</span>
-        <span id="grand-total">$0.00</span>
+        <div class="grand-total-row">
+          <span>Total Expenses:</span>
+          <span id="total-flexible-expenses">0.00</span>
+        </div>
+        <div class="grand-total-row">
+          <span>Total Salaries + Fringe Allocated to Home Department:</span>
+          <span id="total-allocated2">$0.00</span>
+        </div>
+        <div class="grand-final-total-row">
+          <span>Grand Total:</span>
+          <span id="grand-total">$0.00</span>
+        </div>
       </div>
     </div>
-  </div>
 
     <div class="save-section">
       <div>
@@ -593,6 +665,13 @@
     let currentCurrency = '';
     let hasValidationErrors = false;
     let availableIterations = [];
+    let expandedEmployees = new Set();
+
+    const currencies = [
+      { value: 'USD', label: 'USD' },
+      { value: 'EUR', label: 'EUR' },
+      { value: 'GBP', label: 'GBP' }
+    ];
 
     // Initialize the application
     init();
@@ -914,6 +993,25 @@
         return;
       }
 
+
+
+      // Create the headers separately and append them one by one
+      const EmpHeaderColumnTitles = [
+        'Allocs', ' Employee Name', 'Job Title', 'Location', 'Current Annual Salary', 'New Annual Salary', 'Salary Change Month', 'Salary Currency'
+      ];
+
+
+      const Empheaders = document.createElement('div');
+      Empheaders.className = 'employee-column-headers';
+
+      EmpHeaderColumnTitles.forEach(title => {
+        const div = document.createElement('div');
+        div.textContent = title;
+        Empheaders.appendChild(div);
+      });
+
+      container.appendChild(Empheaders);
+
       filteredEmployees.forEach(employee => {
         container.appendChild(createEmployeeBox(employee));
       });
@@ -1187,7 +1285,7 @@
       ExpJustificationInput.type = 'text';
       ExpJustificationInput.className = 'total-just-input';
       ExpJustificationInput.value = expenseData.justification || '';
-      
+
       line.appendChild(ExpJustificationInput);
 
       // Create allocation type dropdown using the same lastActualMonth
@@ -1437,26 +1535,61 @@
       }
     }
 
+
+
+    function toggleEmployeeExpansion(employeeId) {
+      if (expandedEmployees.has(employeeId)) {
+        expandedEmployees.delete(employeeId);
+      } else {
+        expandedEmployees.add(employeeId);
+      }
+    }
+
     function createEmployeeBox(employee) {
+
       const box = document.createElement('div');
       box.className = 'employee-box';
       box.dataset.employeeId = employee.id;
-
-      // Employee header section
-      //const header = document.createElement('div');
-      //header.className = 'employee-header';
-
-      //const title = document.createElement('h3');
-      //title.textContent = employee.name;
-      //header.appendChild(title);
+      if (expandedEmployees.has(employee.id)) {
+        box.classList.add('expanded');
+      }
+      if (expandedEmployees.has(employee.id)) {
+        box.classList.remove('expanded');
+      }
 
 
-
-      //box.appendChild(header);
 
       // Employee info section
       const info = document.createElement('div');
       info.className = 'employee-info';
+
+
+      // Expand/Collapse button
+      //   const expandBtn = document.createElement('button');
+      //expandBtn.className = 'expand-button';
+      //expandBtn.textContent = expandedEmployees.has(employee.id) ? '▼' : '▶';
+      //expandBtn.addEventListener('click', () => {
+      //    const allocations = box.querySelector('.employee-allocations');
+      //    const isExpanded = allocations.classList.toggle('expanded');
+      //    expandBtn.textContent = isExpanded ? '▼' : '▶';
+      //    toggleEmployeeExpansion(employee.id);
+      // });
+      // info.appendChild(expandBtn);
+
+      // Allocations count
+      const AllocsGroup = document.createElement('div');
+      AllocsGroup.className = 'field-group';
+      const allocsInput = document.createElement('label');
+      allocsInput.textContent = `${employee.allocations.length} ▶`;
+      AllocsGroup.addEventListener('click', () => {
+        const allocations = box.querySelector('.employee-allocations');
+        const isExpanded = allocations.classList.toggle('expanded');
+        allocsInput.textContent = `${employee.allocations.length} ${isExpanded ? '▼' : '▶'}`;
+        toggleEmployeeExpansion(employee.id);
+      });
+      AllocsGroup.appendChild(allocsInput);
+      info.appendChild(AllocsGroup);
+
 
       // Name field
       const nameGroup = document.createElement('div');
@@ -1468,7 +1601,7 @@
       nameInput.value = employee.name;
       nameInput.disabled = employee.isExisting;
       nameInput.addEventListener('change', e => updateEmployeeField(employee.id, 'name', e.target.value));
-      nameGroup.appendChild(nameLabel);
+      // nameGroup.appendChild(nameLabel);
       nameGroup.appendChild(nameInput);
       info.appendChild(nameGroup);
 
@@ -1481,7 +1614,7 @@
       titleInput.type = 'text';
       titleInput.value = employee.jobTitle;
       titleInput.addEventListener('change', e => updateEmployeeField(employee.id, 'jobTitle', e.target.value));
-      titleGroup.appendChild(titleLabel);
+      // titleGroup.appendChild(titleLabel);
       titleGroup.appendChild(titleInput);
       info.appendChild(titleGroup);
 
@@ -1515,10 +1648,9 @@
         validateEmployee(employee);
       });
 
-      domicileGroup.appendChild(domicileLabel);
+      //  domicileGroup.appendChild(domicileLabel);
       domicileGroup.appendChild(domicileSelect);
       info.appendChild(domicileGroup);
-
 
       // SalaryOld field
       const oldsalaryGroup = document.createElement('div');
@@ -1529,7 +1661,7 @@
       if (employee.isExisting == true) { oldsalaryDisplay.textContent = formatCurrency(employee.salaryOld, employee.currency); }
       else { oldsalaryDisplay.textContent = 'N/A' };
 
-      oldsalaryGroup.appendChild(oldsalaryLabel);
+      //  oldsalaryGroup.appendChild(oldsalaryLabel);
       oldsalaryGroup.appendChild(oldsalaryDisplay); // Append the div
       info.appendChild(oldsalaryGroup);
 
@@ -1562,10 +1694,9 @@
         }
       });
 
-      salaryGroup.appendChild(salaryLabel);
+      // salaryGroup.appendChild(salaryLabel);
       salaryGroup.appendChild(salaryInput);
       info.appendChild(salaryGroup);
-
 
       // Month of Salary Change
       const salarychangeGroup = document.createElement('div');
@@ -1576,9 +1707,7 @@
       const salarychangeInput = document.createElement('select');
       salarychangeInput.className = 'salary-change-month';
       salarychangeInput.addEventListener('change', e => {
-
         updateSalary(employee.id, employee.salary, employee.salaryOld, e.target.value, employee.currency);
-
       });
 
       const months = [
@@ -1605,10 +1734,9 @@
 
       salarychangeInput.value = employee.salaryChangeMonth;
 
-      salarychangeGroup.appendChild(salarychangeLabel);
+      //  salarychangeGroup.appendChild(salarychangeLabel);
       salarychangeGroup.appendChild(salarychangeInput);
       info.appendChild(salarychangeGroup);
-
 
       // Salary Currency Override
       const salaryCurrencyGroup = document.createElement('div');
@@ -1618,16 +1746,10 @@
       const salaryCurrencyInput = document.createElement('select');
       salaryCurrencyInput.className = 'salary-change-currency';
       salaryCurrencyInput.addEventListener('change', e => {
-
         updateSalary(employee.id, employee.salary, employee.salaryOld, employee.salaryChangeMonth, e.target.value);
-
       });
 
-      const currencies = [
-        { value: 'USD', label: 'USD' },
-        { value: 'EUR', label: 'EUR' },
-        { value: 'GBP', label: 'GBP' }
-      ];
+
 
       currencies.forEach(currency => {
         const option = document.createElement('option');
@@ -1638,16 +1760,26 @@
 
       salaryCurrencyInput.value = employee.currency;
 
-      salaryCurrencyGroup.appendChild(salaryCurrencyLabel);
+      // salaryCurrencyGroup.appendChild(salaryCurrencyLabel);
       salaryCurrencyGroup.appendChild(salaryCurrencyInput);
       info.appendChild(salaryCurrencyGroup);
+
+
+
+
+
+
 
       // Delete button for new employees only
       if (!employee.isExisting) {
         const deleteBtn = document.createElement('button');
         deleteBtn.className = 'danger';
-        deleteBtn.textContent = 'Delete Employee';
-        deleteBtn.addEventListener('click', () => deleteEmployee(employee.id));
+        deleteBtn.innerHTML = 'Delete Employee';
+        deleteBtn.addEventListener('click', () => {
+          //if (confirm('Are you sure you want to delete this employee?')) {
+          deleteEmployee(employee.id);
+          //}
+        });
         info.appendChild(deleteBtn);
       }
 
@@ -1662,8 +1794,10 @@
       addLineBtn.textContent = '+';
       addLineBtn.classList.add('add-line');
       // Add event listener before appending
-      addLineBtn.addEventListener('click', () => addAllocationLine(employee.id));
-
+      addLineBtn.addEventListener('click', () => {
+        addAllocationLine(employee.id);
+        allocsInput.textContent = `Allocations: ${employee.allocations.length}`;
+      });
       // Append button first
       headers.appendChild(addLineBtn);
 
@@ -1673,26 +1807,37 @@
         'Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Total' // Added 'Total'
       ];
 
+
+
+      // Allocation lines
+      const allocationsSection = document.createElement('div');
+      allocationsSection.className = 'employee-allocations';
+      if (expandedEmployees.has(employee.id)) {
+        allocationsSection.classList.add('expanded');
+      }
+
+
       columnTitles.forEach(title => {
         const div = document.createElement('div');
         div.textContent = title;
         headers.appendChild(div);
       });
 
-      box.appendChild(headers);
+      allocationsSection.appendChild(headers);
 
-      // Allocation lines
       employee.allocations.forEach(allocation => {
-        box.appendChild(createAllocationLine(employee.id, allocation));
+        allocationsSection.appendChild(createAllocationLine(employee.id, allocation));
       });
 
-      box.appendChild(createGrandTotalRow(employee));
+      allocationsSection.appendChild(createGrandTotalRow(employee));
+
+
+
 
       // New hires justification line
       if (employee.isExisting === false || employee.justification != null) {
         const hireJustificationGroup = document.createElement('div');
         hireJustificationGroup.className = 'allocation-line grand-total-value';
-
 
         hireJustificationGroup.className = 'allocation-line justification-value';
         const hireJustificationLabel = document.createElement('label');
@@ -1702,29 +1847,21 @@
         hireJustificationInput.value = employee.justification;
         hireJustificationInput.addEventListener('blur', e => {
           updateEmployeeField(employee.id, 'justification', e.target.value);
-        validateEmployee(employee);
-      });
+          validateEmployee(employee);
+        });
         hireJustificationGroup.appendChild(hireJustificationLabel);
         hireJustificationGroup.appendChild(hireJustificationInput); // Append the div
-        box.appendChild(hireJustificationGroup);
+        allocationsSection.appendChild(hireJustificationGroup);
       }
-
-
-
-      // Add allocation button
-      //const actions = document.createElement('div');
-      //actions.className = 'allocation-actions';
-      //const addLineBtn = document.createElement('button');
-      //addLineBtn.textContent = '+ Add Allocation Line';
-      //addLineBtn.addEventListener('click', () => addAllocationLine(employee.id));
-      //actions.appendChild(addLineBtn);
-      //box.appendChild(actions);
 
       // Error message container (initially empty)
       const errorMsg = document.createElement('div');
       errorMsg.className = 'error-message';
       errorMsg.id = `error-${employee.id}`;
-      box.appendChild(errorMsg);
+      allocationsSection.appendChild(errorMsg);
+
+      box.appendChild(allocationsSection);
+
 
       return box;
     }
@@ -1856,6 +1993,7 @@
       };
 
       employeeData.push(newEmployee);
+      expandedEmployees.add(newEmployee.id);
       renderEmployees();
       updateTotals();
       validateAllEmployees();
@@ -1885,6 +2023,14 @@
       employee.allocations.push(newAllocation);
       renderEmployees();
       validateAllEmployees();
+
+      // Update allocations count
+      const allocsInput = document.querySelector(`.employee-box[data-employee-id="${employeeId}"] .field-group label`);
+      if (allocsInput) {
+        const allocations = document.querySelector(`.employee-box[data-employee-id="${employeeId}"] .employee-allocations`);
+        const isExpanded = allocations.classList.contains('expanded');
+        allocsInput.textContent = `${employee.allocations.length} ${isExpanded ? '▼' : '▶'}`;
+      }
     }
 
     function deleteAllocationLine(employeeId, allocationId) {
@@ -1900,6 +2046,13 @@
       renderEmployees();
       validateAllEmployees();
       updateTotals();
+
+      const allocsInput = document.querySelector(`.employee-box[data-employee-id="${employeeId}"] .field-group label`);
+      if (allocsInput) {
+        const allocations = document.querySelector(`.employee-box[data-employee-id="${employeeId}"] .employee-allocations`);
+        const isExpanded = allocations.classList.contains('expanded');
+        allocsInput.textContent = `${employee.allocations.length} ${isExpanded ? '▼' : '▶'}`;
+      }
     }
 
     function updateEmployeeField(employeeId, field, value) {
@@ -1973,37 +2126,37 @@
       //   return sum;
       // }
       //}, 0);
+
       const errorElement = document.getElementById(`error-${employee.id}`);
       const employeeBox = document.querySelector(`.employee-box[data-employee-id="${employee.id}"]`);
+      const allocationsSection = employeeBox.querySelector('.employee-allocations');
       let errorcount = 0;
       errorElement.textContent = '';
 
       if (totalPercent != 100) {
-        errorElement.textContent += 'Employee Allocations must total to 100%. ';       
+        errorElement.textContent += 'Employee Allocations must total to 100%. ';
+        errorcount++;
       }
 
-      // Check if justification is provided for new employees
       if (!employee.isExisting && !employee.justification) {
         errorElement.textContent += 'Employee Justification for hire is required. ';
         errorcount++;
       }
 
-       // Check if domicile is selected
-       if (!employee.domicile) {
+      if (!employee.domicile) {
         errorElement.textContent += 'Location (domicile) is required. ';
         errorcount++;
       }
 
-      
-      if(errorcount>0){
+      if (errorcount > 0) {
         employeeBox.classList.add('error');
+        allocationsSection.classList.add('error');
         return false;
-      }
-
-      else {
-      errorElement.textContent = '';
-      employeeBox.classList.remove('error');
-      return true;
+      } else {
+        errorElement.textContent = '';
+        employeeBox.classList.remove('error');
+        allocationsSection.classList.remove('error');
+        return true;
       }
     }
     //Allow for small rounding differences (e.g., $11 difference in a $100,000 salary)
@@ -2063,7 +2216,7 @@
           const fringeRate = budgetData.metadata.fringe_rates.find(rate =>
             rate.domicile === (employee.domicile || 'TBD')
           )?.rate || 0.41; // Default to 0.41 if no rate found
-          
+
           totalSalaryWithFringe += allocation.monthlyValues.reduce((sum, val) => sum + val, 0) * (1 + fringeRate);
 
           if (allocation.department === currentDepartment) {
@@ -2072,14 +2225,14 @@
             totalAllocated += allocationTotal;
             totalCore += (allocationTotal * (allocation.percentCore / 100));
           }
-          
+
           // Update the total for each allocation line
           const totalValue = allocation.monthlyValues.reduce((sum, val) => sum + val, 0);
           const totalCell = document.getElementById(`linetotal-${allocation.id}`);
           if (totalCell) {
             totalCell.textContent = formatCurrency(totalValue, currentCurrency);
           }
-         
+
           // Add to employee's total
           employeeTotal += totalValue;
         });
@@ -2092,13 +2245,13 @@
       });
 
 
-      
+
       // Update flexible expenses total
       const flexibleTotal = flexibleExpensesData
         .filter(exp => exp.department === currentDepartment)
         .reduce((sum, exp) => sum + exp.monthlyValues.reduce((monthSum, val) => monthSum + val, 0), 0);
 
-    
+
       document.getElementById('total-salaries').textContent = formatCurrency(Math.round(totalSalary), currentCurrency);
       document.getElementById('total-allocated').textContent = formatCurrency(Math.round(totalAllocated), currentCurrency);
       document.getElementById('total-allocated2').textContent = formatCurrency(Math.round(totalAllocated), currentCurrency);
