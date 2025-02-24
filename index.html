@@ -666,6 +666,7 @@
     let hasValidationErrors = false;
     let availableIterations = [];
     let expandedEmployees = new Set();
+    let globalErrorCount = 0;
 
     const currencies = [
       { value: 'USD', label: 'USD' },
@@ -1996,7 +1997,7 @@
       expandedEmployees.add(newEmployee.id);
       renderEmployees();
       updateTotals();
-      validateAllEmployees();
+      validateEmployee(newEmployee);
     }
 
     function deleteEmployee(employeeId) {
@@ -2022,7 +2023,7 @@
 
       employee.allocations.push(newAllocation);
       renderEmployees();
-      validateAllEmployees();
+      validateEmployee(employee);
 
       // Update allocations count
       const allocsInput = document.querySelector(`.employee-box[data-employee-id="${employeeId}"] .field-group label`);
@@ -2044,7 +2045,7 @@
 
       employee.allocations = employee.allocations.filter(allocation => allocation.id !== allocationId);
       renderEmployees();
-      validateAllEmployees();
+      validateEmployee(employee);
       updateTotals();
 
       const allocsInput = document.querySelector(`.employee-box[data-employee-id="${employeeId}"] .field-group label`);
@@ -2079,7 +2080,7 @@
 
       renderEmployees();
       updateTotals();
-      validateAllEmployees();
+      validateEmployee(employee);
     }
 
     function updateAllocationField(employeeId, allocationId, field, value) {
@@ -2093,7 +2094,7 @@
 
       // If changing department, may need to update totals
       updateTotals();
-      validateAllEmployees();
+      validateEmployee(employee);
     }
 
     function updateAllocationPercent(employeeId, allocationId, newPercent) {
@@ -2107,7 +2108,7 @@
       allocation.monthlyValues = generateMonthlyValues(employee.salary, employee.salaryOld, employee.salaryChangeMonth, newPercent, employee.currency)
 
       renderEmployees();
-      validateAllEmployees();
+      validateEmployee(employee);
       updateTotals();
     }
 
@@ -2148,23 +2149,41 @@
         errorcount++;
       }
 
+      const hadErrors = employeeBox.classList.contains('error');
+
       if (errorcount > 0) {
         employeeBox.classList.add('error');
         allocationsSection.classList.add('error');
+        if (!hadErrors) { // Increment only if employee didn't have errors before
+            globalErrorCount++;
+        }
+       updateValidationSummary();
         return false;
-      } else {
-        errorElement.textContent = '';
+    } else {
         employeeBox.classList.remove('error');
         allocationsSection.classList.remove('error');
+        if (hadErrors) { // Decrement only if employee had errors before
+            globalErrorCount--;
+        }
+        updateValidationSummary();
         return true;
-      }
     }
-    //Allow for small rounding differences (e.g., $11 difference in a $100,000 salary)
-    //const roundingTolerance = Math.max(12, Math.round(employee.salary * 0.0001)); // 0.01% tolerance or at least $12
+}
 
-    //if (totalAllocatedValue - employee.salary > roundingTolerance) {
-    //  errorElement.textContent += '  The total of all Monthly values must not be greater than the salary amount.'; employeeBox.classList.add('error');
-    //}
+
+function updateValidationSummary() {
+    const saveBtn = document.getElementById('save-btn');
+    console.log(globalErrorCount);
+    saveBtn.disabled = globalErrorCount > 0;
+
+
+    const validationSummary = document.getElementById('validation-summary');
+    if (globalErrorCount > 0) {
+        validationSummary.textContent = `Please fix ${globalErrorCount} validation error${globalErrorCount > 1 ? 's' : ''} before saving.`;
+    } else {
+        validationSummary.textContent = '';
+    }
+}
 
 
     function validateAllEmployees() {
@@ -2180,19 +2199,8 @@
         }
       });
 
-      // Update save button state
-      hasValidationErrors = validationErrors > 0;
-      const saveBtn = document.getElementById('save-btn');
-      saveBtn.disabled = hasValidationErrors;
 
-      // Update validation summary
-      const validationSummary = document.getElementById('validation-summary');
-      if (hasValidationErrors) {
-        validationSummary.textContent = `Please fix ${validationErrors} validation error${validationErrors > 1 ? 's' : ''} before saving.`;
-      } else {
-        validationSummary.textContent = '';
-      }
-
+      updateValidationSummary();
       return !hasValidationErrors;
     }
 
